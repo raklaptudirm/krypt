@@ -1,0 +1,32 @@
+{
+  "name": "krypt",
+  "version": "1.0.0",
+  "description": "A secure password manager",
+  "main": "bin/test.js",
+  "scripts": {
+    "test": "echo hi"
+  },
+  "author": "Rak Laptudirm",
+  "license": "MIT",
+  "bin": {
+    "krypt": "bin/index.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "url": "git+ssh://git@github.com/raklaptudirm/Quote.git"
+  },
+  "bugs": {
+    "url": "https://github.com/raklaptudirm/Quote/issues"
+  },
+  "homepage": "https://github.com/raklaptudirm/Quote#readme",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "hibp": "^10.0.1",
+    "readline-sync": "^1.4.10"
+  }
+}
