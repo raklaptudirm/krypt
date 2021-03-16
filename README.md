@@ -6,7 +6,7 @@
 Clone the repo:
 
 ```
-gh clone
+gh repo clone raklaptudirm/Krypt
 ```
 
 Change your directory:
