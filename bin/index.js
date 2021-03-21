@@ -116,6 +116,19 @@ async function main() {
 							loadDatabase()
 							loadPasswords()
 						}
+					} else if (input === 'list') {
+						for (const i in _PASSWORDS) {
+							printPass(_PASSWORDS[i], parseInt(i) + 1)
+							console.log("")
+						}
+					} else if (input.startsWith('search ')) {
+						input = input.slice(7)
+						for (const i in _PASSWORDS) {
+							if (_PASSWORDS[i].name.includes(input)) {
+								printPass(_PASSWORDS[i], parseInt(i) + 1)
+								console.log("")
+							}
+						}
 					} else {
 						console.log(chalk.red.bold('Invalid command.'))
 					}
