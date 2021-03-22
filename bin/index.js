@@ -10,7 +10,7 @@ const chalk = require('chalk')
 
 // Global Vars
 
-let _DATABASE; let _PASSWORDS = {}; let _KEY
+let _DATABASE, _PASSWORDS = {}, _KEY, _2F
 let _COMMS = [{name:'edit ', use: 'Edit; Edit a password', ex: 'edit <pass_id>'}, {name: 'gent ', use: 'Get entry; Get a password entry', ex: 'gent <pass_id>'}, {name: 'gpass', use: 'Get password; Get the password of an entry', ex: 'gpass <pass_id>'}, {name: 'npass', use: 'New Password; Create a new Password', ex: 'npass'}, {name: 'sche ', use: 'Security Check; Checks your passwords\'s security', ex: 'sche'}, {name: 'cmast', use: 'Change Master; Changes the master password', ex: 'cmast'}, {name: 'dpass', use: 'Delete Password; Delete a password', ex: 'dpass <pass_id>'}, {name: 'mpass', use: 'Generate a random password', ex: 'mpass'}, {name: 'exit ', use: 'Exit; Exit the process', ex: 'exit'}]
 
 // Main function
@@ -19,12 +19,13 @@ async function main() {
 	if (fs.existsSync(__dirname + '/../lib/database.json')) {
 		loadDatabase()
 		_KEY = crypt.SHA_hash(readlineSync.question('PASSWORD: ', { hideEchoBack: true }))
-		if (_DATABASE.checksum === crypt.SHA_hash(_KEY)) {
+		if (_DATABASE.settings.TwoFA.on) _2F = crypt.SHA_hash(readlineSync.question(_DATABASE.settings.TwoFA.question + '? ', { hideEchoBack: true }))
+		if (_DATABASE.checksum === crypt.SHA_hash(_KEY) && (!_DATABASE.settings.TwoFA.on || _DATABASE.settings.TwoFA.answer === crypt.SHA_hash(_2F))) {
 			console.log(chalk.green.bold('Logged in.'))
 			loadPasswords()
 			while (true) {
 				console.log('')
-				let input = readlineSync.prompt()
+				let input = readlineSync.prompt().toLowerCase()
 				if (input === 'exit') {
 					break
 				} else if (input === 'cmast') {
@@ -123,10 +124,54 @@ async function main() {
 						}
 					} else if (input.startsWith('search ')) {
 						input = input.slice(7)
+						let notFound = true
 						for (const i in _PASSWORDS) {
-							if (_PASSWORDS[i].name.includes(input)) {
+							if (_PASSWORDS[i].name.toLowerCase().includes(input)) {
 								printPass(_PASSWORDS[i], parseInt(i) + 1)
+								notFound = false
 								console.log("")
+							}
+						}
+						if (notFound) console.log(chalk.red.bold("No matches found."))
+					} else if (input.startsWith('set ')) {
+						input = input.slice(4)
+						if (input.startsWith('2fa')) {
+							if (!_DATABASE.settings.TwoFA.on) {
+								const sel = readlineSync.question(chalk.green.bold('Enable 2-Factor Authentication? (yes): '))
+								if (sel === 'yes') {
+									_DATABASE.settings.TwoFA.on = true
+									_DATABASE.settings.TwoFA.question = readlineSync.question('Enter a question:')
+									_2F = crypt.SHA_hash(readlineSync.question('Enter the answer:'))
+									_DATABASE.settings.TwoFA.answer = crypt.SHA_hash(_2F)
+									console.log(chalk.green.bold("Enabled 2 factor Auth."))
+									reEncryptData()
+									loadDatabase()
+									loadPasswords()
+								} else {
+									console.log(chalk.red.bold('Command aborted.'))
+								}
+							} else {
+								input = input.slice(4)
+								if (input === 'dis') {
+									const sel = readlineSync.question(chalk.red.bold('Disable 2-Factor Authentication? (yes): '))
+									if (sel === 'yes') {
+										_DATABASE.settings.TwoFA.on = false
+										console.log(chalk.green.bold("Disabled 2 factor Auth."))
+										reEncryptData()
+										loadDatabase()
+										loadPasswords()
+									} else {
+										console.log(chalk.green.bold('Command aborted.'))
+									}
+								} else {
+									_DATABASE.settings.TwoFA.question = readlineSync.question('Enter new question (Keep empty to keep the same):') || _DATABASE.settings.TwoFA.question
+									_2F = crypt.SHA_hash(readlineSync.question('Enter new answer (Keep empty to keep the same):')) || _2F
+									_DATABASE.settings.TwoFA.answer = crypt.SHA_hash(_2F)
+									console.log(chalk.green.bold("Changed Auth factors."))
+									reEncryptData()
+									loadDatabase()
+									loadPasswords()
+								}
 							}
 						}
 					} else {
@@ -134,10 +179,10 @@ async function main() {
 					}
 				}
 			} else {
-				console.log(chalk.red.bold('Wrong Password.'))
+				console.log(chalk.red.bold('Wrong Password or 2nd factor.'))
 			}
 		} else {
-			_DATABASE = { checksum: '', settings: { TwoFA: false }, data: { iv: '', encryptedData: '' } }
+			_DATABASE = { checksum: '', settings: { TwoFA: { on: false, question: "", answer: "" } }, data: { iv: '', encryptedData: '' } }
 			_PASSWORDS = []
 			_KEY = crypt.SHA_hash(readlineSync.questionNewPassword())
 			_DATABASE.checksum = crypt.SHA_hash(_KEY)
@@ -147,6 +192,7 @@ async function main() {
 
 	main()
 
+// mridutpalthegreat
 // important funcs
 
 async function passIsPwned(password) {
@@ -234,16 +280,22 @@ function passStrength(pass) {
 	function loadDatabase () {
 		const data = fs.readFileSync(__dirname + '/../lib/database.json')
 		_DATABASE = JSON.parse(data)
-		return true
 	}
 
 	function loadPasswords () {
-		_PASSWORDS = JSON.parse(crypt.AES_decrypt(_DATABASE.data, _KEY))
-		return true
+		_PASSWORDS = JSON.parse(decryptPass())
 	}
 
 	function reEncryptData () {
-		_DATABASE.data = crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)
+		if (_DATABASE.settings.TwoFA.on)
+			_DATABASE.data = crypt.AES_encrypt(JSON.stringify(crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)), _2F)
+		else
+			_DATABASE.data = crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)
 		fs.writeFileSync(__dirname + '/../lib/database.json', JSON.stringify(_DATABASE))
-		return true
+	}
+
+	function decryptPass () {
+		if (_DATABASE.settings.TwoFA.on) 
+			return crypt.AES_decrypt(JSON.parse(crypt.AES_decrypt(_DATABASE.data, _2F)), _KEY)
+		return crypt.AES_decrypt(_DATABASE.data, _KEY)
 	}
