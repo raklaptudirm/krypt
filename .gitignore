@@ -1,3 +1,4 @@
 
-lib/database.json
+config.json
+databases/
 node_modules/
