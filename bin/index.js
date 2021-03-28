@@ -11,7 +11,7 @@ const clipboardy = require('clipboardy')
 
 //constants
 
-const databaseTemplate = { checksum: '', settings: { TwoFA: { on: false, question: "", answer: "" }, hint: { on: false, hint: "" }, alias: {  }, passwordWordy: false }, data: { iv: '', encryptedData: '' } },
+const databaseTemplate = { checksum: { checksum: "", salt: "" }, salt: { key: "", TwoFA: "" }, settings: { TwoFA: { on: false, question: "", answer: { checksum: "", salt: "" } }, hint: { on: false, hint: "" }, alias: {  }, passwordWordy: false }, data: { iv: '', encryptedData: '' } },
 _COMMS = [{name:'edit', use: 'Edit; Edit a password', ex: 'edit <pass_id>'}, {name: 'gent', use: 'Get entry; Get a password entry', ex: 'gent <pass_id>'}, {name: 'gpass', use: 'Get password; Get the password of an entry', ex: 'gpass <pass_id>'}, {name: 'npass', use: 'New Password; Create a new Password', ex: 'npass'}, {name: 'sche', use: 'Security Check; Checks your passwords\'s security', ex: 'sche'}, {name: 'cmast', use: 'Change Master; Changes the master password', ex: 'cmast'}, {name: 'dpass', use: 'Delete Password; Delete a password', ex: 'dpass <pass_id>'}, {name: 'mpass', use: 'Make password; Generate a random password', ex: 'mpass'}, {name: 'exit ', use: 'Exit; Exit the process', ex: 'exit'}, {name: 'list', use: 'List; List all passwords', ex: 'list'}, {name: 'search', use: 'Search; Search for a password', ex: 'search <keyword>'}, {name: 'set', use: 'Set; Change a setting', ex: 'set <setting> <args>'}, {name: 'copy', use: 'Copy; Copy a password', ex: 'copy <pass_id>'}],
 _BASENAME = /[A-Za-z0-9-_.,]{1,100}/
 
@@ -25,14 +25,14 @@ async function main() {
 	if (fs.existsSync(__dirname + '/../databases/' + _NAME)) {
 
 		if(!loadDatabase()) return
-		_KEY = crypt.SHA_hash(readlineSync.question('PASSWORD: ', { hideEchoBack: true }))
+		_KEY = crypt.PBKDF2_HASH(readlineSync.question('PASSWORD: ', { hideEchoBack: true }), _DATABASE.salt.key)
 
 		if (_DATABASE.settings.passwordWordy)
 			_WORDS = JSON.parse(fs.readFileSync(__dirname + '/../lib/words.json'))
 
-		if (_DATABASE.settings.TwoFA.on) _2F = crypt.SHA_hash(readlineSync.question(_DATABASE.settings.TwoFA.question + '? ', { hideEchoBack: true }))
+		if (_DATABASE.settings.TwoFA.on) _2F = crypt.PBKDF2_HASH(readlineSync.question(_DATABASE.settings.TwoFA.question + '? ', { hideEchoBack: true }), _DATABASE.salt.TwoFA)
 
-		if (_DATABASE.checksum === crypt.SHA_hash(_KEY) && (!_DATABASE.settings.TwoFA.on || _DATABASE.settings.TwoFA.answer === crypt.SHA_hash(_2F))) {
+		if (_DATABASE.checksum.checksum === crypt.PBKDF2_HASH(_KEY, _DATABASE.checksum.salt) && (!_DATABASE.settings.TwoFA.on || _DATABASE.settings.TwoFA.answer.checksum === crypt.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))) {
 
 			console.log(chalk.green.bold('Logged in.'))
 			loadPasswords()
@@ -47,8 +47,10 @@ async function main() {
 					console.clear()
 					break
 				} else if (input[0] === 'cmast') {
-					_KEY = crypt.SHA_hash(readlineSync.questionNewPassword("Enter new Password: ", { min: 8 }))
-					_DATABASE.checksum = crypt.SHA_hash(_KEY)
+					_KEY = crypt.PBKDF2_HASH(readlineSync.questionNewPassword("Enter new Password: ", { min: 8 }))
+					_DATABASE.salt.key = _KEY.salt
+					_KEY = _KEY.checksum
+					_DATABASE.checksum = crypt.PBKDF2_HASH(_KEY)
 					reEncryptData()
 				} else if (input[0] === 'npass') {
 					const name_ = readlineSync.question('Password Name: ')
@@ -160,10 +162,13 @@ async function main() {
 							if (sel === 'yes') {
 								_DATABASE.settings.TwoFA.on = true
 								_DATABASE.settings.TwoFA.question = readlineSync.question('Enter a question: ')
-								_2F = crypt.SHA_hash(readlineSync.question('Enter the answer: '))
-								_DATABASE.settings.TwoFA.answer = crypt.SHA_hash(_2F)
+								_2F = crypt.PBKDF2_HASH(readlineSync.question('Enter the answer: '))
+								_DATABASE.salt.TwoFA = _2F.salt
+								_2F = _2F.checksum
+								_DATABASE.settings.TwoFA.answer = crypt.PBKDF2_HASH(_2F)
 								console.log(chalk.green.bold("Enabled 2 factor Auth."))
-								reEncryptData()							} else {
+								reEncryptData()					
+							} else {
 								console.log(chalk.red.bold('Command aborted.'))
 							}
 						} else {
@@ -177,9 +182,11 @@ async function main() {
 									console.log(chalk.green.bold('Command aborted.'))
 								}
 							} else {
-								_DATABASE.settings.TwoFA.question = readlineSync.question('Enter new question (Keep empty to keep the same):') || _DATABASE.settings.TwoFA.question
-								_2F = crypt.SHA_hash(readlineSync.question('Enter new answer (Keep empty to keep the same):')) || _2F
-								_DATABASE.settings.TwoFA.answer = crypt.SHA_hash(_2F)
+								_DATABASE.settings.TwoFA.question = readlineSync.question('Enter new question (Keep empty to keep the same): ') || _DATABASE.settings.TwoFA.question
+								_2F = crypt.PBKDF2_HASH(readlineSync.question('Enter new answer: '))
+								_DATABASE.salt.TwoFA = _2F.salt
+								_2F = _2F.checksum
+								_DATABASE.settings.TwoFA.answer = crypt.PBKDF2_HASH(_2F)
 								console.log(chalk.green.bold("Changed Auth factors."))
 								reEncryptData()
 							}
@@ -274,15 +281,17 @@ async function main() {
 				}
 			}
 		} else {
-			console.log(chalk.red.bold('Wrong Password or 2nd factor.'))
+			console.log(chalk.red.bold((_DATABASE.settings.TwoFA.on)?'Wrong Password or 2nd factor.':'Wrong Password.'))
 			if (_DATABASE.settings.hint.on)
 				console.log(chalk.green.bold(`Hint: ${_DATABASE.settings.hint.hint}`))
 		}
 	} else {
 		_DATABASE = databaseTemplate
 		_PASSWORDS = []
-		_KEY = crypt.SHA_hash(readlineSync.questionNewPassword('New Password: ', { min: 8 }))
-		_DATABASE.checksum = crypt.SHA_hash(_KEY)
+		_KEY = crypt.PBKDF2_HASH(readlineSync.questionNewPassword('New Password: ', { min: 8 }))
+		_DATABASE.salt.key = _KEY.salt
+		_KEY = _KEY.checksum
+		_DATABASE.checksum = crypt.PBKDF2_HASH(_KEY)
 		reEncryptData()
 	}
 }
@@ -332,32 +341,32 @@ function generatePassword() {
 	let password
 
 	if (_DATABASE.settings.passwordWordy) {
-		let seperator = _specialChars[Math.round(Math.random() * _specialChars.length - 1)]
+		let seperator = _specialChars[crypt.random(_specialChars.length - 1)]
 		let len = _WORDS.length - 1, front = '', back = ''
-		if (Math.round(Math.random()) === 0)
-			front = Math.round(Math.random() * 999)
+		if (crypt.random(1) === 0)
+			front = crypt.random(999)
 		else
-			back = Math.round(Math.random() * 999)
-		password = front + _WORDS[Math.round(Math.random() * len)] + seperator + _WORDS[Math.round(Math.random() * len)] + seperator + _WORDS[Math.round(Math.random() * len)] + back
+			back = crypt.random(999)
+		password = front + _WORDS[crypt.random(len)] + seperator + _WORDS[crypt.random(len)] + seperator + _WORDS[crypt.random(len)] + back
 	} else {
 		do {
 			password = ""
 			const length = 12
 
 			for (let i = 0; i < length; i++) {
-				let type = Math.round(Math.random() * 3)
+				let type = crypt.random(3)
 				switch (type) {
 					case 0:
-					password += _lowerCase[Math.round(Math.random() * 25)]
+					password += _lowerCase[crypt.random(25)]
 					break
 					case 1:
-					password += _upperCase[Math.round(Math.random() * 25)]
+					password += _upperCase[crypt.random(25)]
 					break
 					case 2:
-					password += _numbers[Math.round(Math.random() * 9)]
+					password += _numbers[crypt.random(9)]
 					break
 					case 3:
-					password += _specialChars[Math.round(Math.random() * _specialChars.length - 1)]
+					password += _specialChars[crypt.random(_specialChars.length - 1)]
 				}
 			}
 		} while (passStrength(password) !== chalk.green.bold("[STRONG]"))
