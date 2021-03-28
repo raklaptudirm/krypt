@@ -45,7 +45,7 @@
 
 - Password leak checking with [have i been pwned](https://haveibeenpwned.com)
 
-- `unsafe` Strong password generator. **[ Uses cryptographically insecure `Math.random()` ]** **[ Fixed in 516f896 ]**
+- `unsafe` Strong password generator. **[ Uses cryptographically insecure `Math.random()` ]** [ Fixed in `v2.2.0` ]
 
 - Password health checking.
 
