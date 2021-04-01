@@ -1,4 +1,6 @@
 # Krypt
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+
  A smart, secure and minimalistic password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
  
 [Docs Here](https://github.com/Mkorp-Official/Krypt/wiki)
