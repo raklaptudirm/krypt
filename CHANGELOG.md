@@ -1,3 +1,51 @@
+# v3.1.2
+
+- Fixed Krypt "feature" which disabled use of capitals in names.
+
+# v3.1.1
+
+- Added missing info commands
+
+# v3.1.0
+
+- Extended `archive` to include directories.
+
+# v3.0.0
+
+- Added `archive` function to store encrypted files.
+
+# v2.7.0
+
+- Replaced smaller dictionary of `words.json` with **Webster Dictonary**.
+
+# v2.6.4
+
+- Database name shown on startup.
+
+# v2.6.3
+
+- Added better name format checking with `RegExp`.
+
+# v2.6.2
+
+- Added more strength groups.
+
+# v2.6.1
+
+- Added strength calculator function `strength <password>`.
+
+# v2.6.0
+
+- Changed strength calculator to popular `zxcvbn`.
+
+# v2.5.2
+
+- Removed unnecessary functions.
+
+# v2.5.1
+
+- Faster database reload for some functions.
+
 # v2.5.0
 
 - Added first version of `CHANGELOG.md` to the repository.
@@ -12,7 +60,7 @@
 
 # v2.2.0
 
-- Fixed cryptographically insecure `Math.random()` with secure `crypto.randomInt()` (wrapped by `crypt.random()`).
+- Fixed cryptographically insecure `Math.random()` with secure `crypto.randomInt()` (wrapped by `crypt.random()`) for password generation.
 
 # v2.1.0
 
@@ -35,6 +83,7 @@
 - `list` command to list all passwords
 
 # v1.0.0
+
 - AES Encryption for password storage
 
 - SHA Password checksum
@@ -45,20 +94,10 @@
 
 - Password leak checking with [have i been pwned](https://haveibeenpwned.com)
 
-- `unsafe` Strong password generator. **[ Uses cryptographically insecure `Math.random()` ]** [ Fixed in `v2.2.0` ]
+- `unsafe` Strong password generator. **[ Uses cryptographically insecure `Math.random()` ]** **[ Fixed in 516f896 ]**
 
 - Password health checking.
 
+​
 
-
-
-
-
-
-
-
-
-
-​    
-
-​    
+​

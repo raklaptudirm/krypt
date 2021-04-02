@@ -1,6 +1,6 @@
 {
   "name": "krypt",
-  "version": "2.5.0",
+  "version": "3.1.2",
   "description": "A secure password manager",
   "main": "bin/test.js",
   "scripts": {
@@ -28,6 +28,10 @@
     "chalk": "^4.1.0",
     "clipboardy": "^2.3.0",
     "hibp": "^10.0.1",
-    "readline-sync": "^1.4.10"
+    "readline-sync": "^1.4.10",
+    "zxcvbn": "^4.4.2"
+  },
+  "devDependencies": {
+    "prettier": "2.2.1"
   }
 }

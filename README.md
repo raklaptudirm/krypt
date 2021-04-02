@@ -1,6 +1,7 @@
 # Krypt
- A smart, secure and minimalistic password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
- 
+
+A smart, secure and minimalistic password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
+
 [Docs Here](https://github.com/Mkorp-Official/Krypt/wiki)
 
 # Installation
@@ -36,6 +37,3 @@ krypt
 - [x] Password Generation
 - [x] Password Health check
 - [x] Encryption of Passwords
-
-
-
