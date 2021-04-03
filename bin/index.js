@@ -799,6 +799,8 @@ async function main() {
  * [18] getAllFiles
  *        dir -> String > path
  *      Get a list of all files in a directory
+ * [19] LOGO
+ *      Print the Krypt logo into the terminal
  */
 
 function isNotCommand(name) {
@@ -1011,6 +1013,11 @@ function getAllFiles(dir) {
   return files
 }
 
+function LOGO() {
+	const logo = fs.readFileSync("krypt.logo").toString()
+  console.log(chalk.green.bold(logo))
+}
+
 /*
  * Main process
  *
@@ -1027,6 +1034,9 @@ if (process.argv.length === 2) {
     )
   _NAME = getDatabases()
   _NAME = _NAME.selected
+  console.log("")
+  LOGO()
+  console.log("")
   console.log(`\n${chalk.green.bold(`Database: [ ${_NAME} ]`)}\n`)
   main()
 } else {
