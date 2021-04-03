@@ -1,3 +1,15 @@
+```
+                                  __    ___                                  __
+                                 |  |  /  / ________________________________|  |__
+                                 |  | /  / |________________________________    __|
+                                 |  |/  /     __  __   __    __   _______   |  |
+                                 |     (     |  |/  \ |  |  |  | |       \  |  |
+                                 |  |\  \    |   /|_| |  |  |  | |  / \  |  |  |
+                                 |  | \  \   |  |     |  \__/  | |  \ /  |  |  |
+                                 |__|  \__\  |__|     \_____   | |   ____/  |__|
+                                  __________________________|  | |  |__________
+                                 |_____________________________/ |_____________|
+```
 # Krypt
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Mkorp-Official/Krypt/blob/main/LICENSE)
