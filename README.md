@@ -27,7 +27,7 @@ cd path/to/krypt
 Install the script:
 
 ```
-npm install -g
+npm install -global
 ```
 
 Start the process:
