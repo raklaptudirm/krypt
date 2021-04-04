@@ -29,7 +29,7 @@ __________________________________________________
 Clone the repo:
 
 ```
-gh repo clone raklaptudirm/Krypt
+git clone https://github.com/Mkorp-Official/Krypt.git
 ```
 
 Change your directory:
