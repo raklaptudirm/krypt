@@ -1,3 +1,11 @@
+# v3.1.4
+
+- Added `krypt license` command to view the `LICENSE`.
+
+# v3.1.3
+
+- Added a Krypt terminal logo (See `krypt.logo`).
+
 # v3.1.2
 
 - Fixed Krypt "feature" which disabled use of capitals in names.

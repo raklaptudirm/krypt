@@ -60,7 +60,7 @@ const _DATA_TEMPLATE = {
     },
     {
       name: "sche",
-      use: "Security Check; Checks your passwords's security",
+      use: "Security Check; Checks your password's security",
       ex: "sche",
     },
     {
@@ -115,7 +115,7 @@ let _DATABASE,
  * Main function
  *
  * This function definition defines the main process
- * of Krypt. It is invoked if krypt recieves no args.
+ * of Krypt. It is invoked if Krypt receives no args.
  */
 
 async function main() {
@@ -204,7 +204,7 @@ async function main() {
           } else {
             const sel = readlineSync.question(
               chalk.red(
-                "This command will show your password in cleartext. Proceed? (yes): "
+                "This command will show your password in clear-text. Proceed? (yes): "
               )
             )
             if (sel === "yes") {
@@ -229,7 +229,7 @@ async function main() {
             )
             if (sel === "yes") {
               _PASSWORDS.splice(input, 1)
-              console.log(chalk.green.bold("Password deleted Sucessfully."))
+              console.log(chalk.green.bold("Password deleted Successfully."))
               reEncryptData()
             } else {
               console.log(chalk.green.bold("Delete aborted."))
@@ -255,7 +255,7 @@ async function main() {
             } catch (err) {
               console.log(
                 chalk.red.bold(
-                  "You are not connected to the internet. Krypt needs an internet connection to check if your passwords have been leaked or not."
+                  "You are not connected to the Internet. Krypt needs an Internet connection to check if your passwords have been leaked or not."
                 )
               )
               error = true
@@ -332,7 +332,7 @@ async function main() {
               username_ || _PASSWORDS[input].username,
               password_
             )
-            console.log(chalk.green.bold("Sucessfully edited password."))
+            console.log(chalk.green.bold("Successfully edited password."))
             reEncryptData()
           }
         } else if (input[0] === "list") {
@@ -451,7 +451,7 @@ async function main() {
                   console.log(chalk.green.bold("Alias set."))
                   reEncryptData()
                 } else {
-                  console.log(chalk.red.bold("Illeagal alias name."))
+                  console.log(chalk.red.bold("Illegal alias name."))
                 }
               } else {
                 console.log(chalk.red.bold("Command already exists."))
@@ -465,10 +465,10 @@ async function main() {
                   _DATABASE.settings.alias[alias] =
                     _DATABASE.settings.alias[input[3]]
                   delete _DATABASE.settings.alias[input[3]]
-                  console.log(chalk.green.bold("Alias renamed sucessfully."))
+                  console.log(chalk.green.bold("Alias renamed successfully."))
                   reEncryptData()
                 } else {
-                  console.log(chalk.red.bold("Illeagal alias name."))
+                  console.log(chalk.red.bold("Illegal alias name."))
                 }
               }
             } else if (input[2] === "delete") {
@@ -476,7 +476,7 @@ async function main() {
                 console.log(chalk.red.bold("Could not find alias."))
               } else {
                 delete _DATABASE.settings.alias[input[3]]
-                console.log(chalk.green.bold("Alias deleted sucessfully."))
+                console.log(chalk.green.bold("Alias deleted successfully."))
                 reEncryptData()
               }
             } else if (input[2] === "list") {
@@ -563,7 +563,7 @@ async function main() {
                   JSON.stringify(binEncryptFile(fs.readFileSync(fPath)))
                 )
                 fs.unlinkSync(fPath)
-                console.log(chalk.green.bold("Archived file sucessfully."))
+                console.log(chalk.green.bold("Archived file successfully."))
                 updateTree()
               } else {
                 console.log(chalk.red.bold("Archive already exists."))
@@ -604,13 +604,13 @@ async function main() {
                   __dirname + "/../databases/" + _NAME + "/" + fName + "/.tree",
                   JSON.stringify(dirTree)
                 )
-                console.log(chalk.green.bold("Archived directory sucessfully."))
+                console.log(chalk.green.bold("Archived directory successfully."))
                 updateTree()
               } else {
                 console.log(chalk.red.bold("Archive already exists"))
               }
             } else {
-              console.log(chalk.red.bold("Illeagal command."))
+              console.log(chalk.red.bold("Illegal command."))
             }
           } else if (input[1] === "unarc") {
             if (_TREE[input[2]] === undefined) {
@@ -731,7 +731,7 @@ async function main() {
 /*
  * Function definitions
  *
- * All the functions used by krypt are defined here.
+ * All the functions used by Krypt are defined here.
  *
  * List:
  * [01] isNotCommand
@@ -1055,7 +1055,7 @@ if (process.argv.length === 2) {
     } else {
       console.log(
         chalk.red.bold(
-          "Illeagal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
+          "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
         )
       )
     }
@@ -1118,7 +1118,7 @@ if (process.argv.length === 2) {
       } else {
         console.log(
           chalk.red.bold(
-            "Illeagal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
+            "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
           )
         )
       }
@@ -1138,6 +1138,9 @@ if (process.argv.length === 2) {
         ) + err
       )
     }
+  } else if (args[0] === "license") {
+    console.log(`\n${chalk.bold("Permissions:")}\n${chalk.green.bold("* Commercial use\n* Distribution\n* Modification\n* Private use")}\n\n${chalk.bold("Conditions:")}\n${chalk.cyan.bold("* License and copyright notice")}\n\n${chalk.bold("Limitations:")}\n${chalk.red.bold("* Liability\n* Warranty")}\n`)
+    console.log(chalk.bold(fs.readFileSync(`${__dirname}/../LICENSE`).toString()))
   } else {
     console.log(chalk.red.bold("Invalid argument."))
   }
