@@ -1014,7 +1014,7 @@ function getAllFiles(dir) {
 }
 
 function LOGO() {
-	const logo = fs.readFileSync("krypt.logo").toString()
+	const logo = fs.readFileSync(__dirname + "/../krypt.logo").toString()
   console.log(chalk.green.bold(logo))
 }
 
