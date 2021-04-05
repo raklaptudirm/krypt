@@ -58,4 +58,6 @@ krypt
 - [x] Password Health check
 - [x] Encryption of Passwords
 
+# License:
+This software is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
 
