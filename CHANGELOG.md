@@ -1,6 +1,7 @@
 # v3.2.1
 
-- Changed `isNaN()` to safer `Integer.isNaN()`.
+- Changed `isNaN()` to safer `Number.isNaN()`.
+- Fixed broken `delete <pass_id>`.
 
 # v3.2.0
 

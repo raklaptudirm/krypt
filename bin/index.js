@@ -70,7 +70,7 @@ const _DATA_TEMPLATE = {
       ex: "cmast",
     },
     {
-      name: "dpass",
+      name: "delete",
       use: "Delete Password; Delete a password",
       ex: "dpass <pass_id>",
     },
@@ -180,7 +180,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            Integer.isNaN(input) ||
+            Number.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -192,7 +192,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            Integer.isNaN(input) ||
+            Number.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -209,11 +209,11 @@ async function main() {
               console.log(chalk.green.bold("Command aborted."))
             }
           }
-        } else if (input[1] === "delete") {
+        } else if (input[0] === "delete") {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            Integer.isNaN(input) ||
+            Number.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -280,7 +280,7 @@ async function main() {
               console.log(chalk.green.bold("All your passwords are secure."))
             }
           }
-          for (const i of Object.keys(list)) {
+          for (const i in list) {
             if (list[i].length > 1)
               console.log(
                 chalk.red.bold`Entries of id ${list[i].join(
@@ -304,7 +304,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            Integer.isNaN(input) ||
+            Number.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -500,7 +500,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            Integer.isNaN(input) ||
+            Number.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
