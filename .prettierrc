@@ -3,6 +3,6 @@
   "tabWidth": 2,
   "semi": false,
   "arrowParens": "avoid",
-  "useTabs": false
+  "useTabs": false,
   "endOfLine": "crlf"
 }

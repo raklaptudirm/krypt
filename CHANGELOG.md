@@ -1,3 +1,8 @@
+# v3.2.0
+
+- Added `krypt strength` and `krypt make` global functions.
+- Added more efficient and maintainable password leak checking.
+
 # v3.1.4
 
 - Added `krypt license` command to view the `LICENSE`.
@@ -24,7 +29,7 @@
 
 # v2.7.0
 
-- Replaced smaller dictionary of `words.json` with **Webster Dictonary**.
+- Replaced smaller dictionary of `words.json` with **Webster Dictionary**.
 
 # v2.6.4
 

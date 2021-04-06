@@ -4,7 +4,7 @@
  * krypt
  * https://github.com/Mkorp-Official/Krypt
  *
- * Copyright (c) 2020 Rak Laptudirm
+ * Copyright (c) 2021 Rak Laptudirm
  * Licensed under the MIT license.
  */
 
@@ -41,6 +41,7 @@ const _DATA_TEMPLATE = {
     },
     data: { iv: "", encryptedData: "" },
   },
+  // todo: update help
   _COMMS = [
     { name: "edit", use: "Edit; Edit a password", ex: "edit <pass_id>" },
     {
@@ -125,11 +126,6 @@ async function main() {
       readlineSync.question("PASSWORD: ", { hideEchoBack: true }),
       _DATABASE.salt.key
     )
-
-    if (_DATABASE.settings.passwordWordy)
-      _WORDS = JSON.parse(
-        fs.readFileSync(__dirname + "/../lib/dictionary.json")
-      )
 
     if (_DATABASE.settings.TwoFA.on)
       _2F = crypt.PBKDF2_HASH(
@@ -293,12 +289,9 @@ async function main() {
               )
           }
         } else if (input[0] === "make") {
-          const newPass = generatePassword()
+          const newPass = generatePassword(_DATABASE.settings.passwordWordy)
           console.log(chalk.cyan.bold(newPass))
-          console.log(
-            passStrength(newPass).score +
-              chalk.red.bold(`[Occurances:${await pwnedPassword(newPass)}]`)
-          )
+          console.log(passStrength(newPass).score + (await timesPwned(newPass)))
         } else if (input[0] === "help") {
           console.log(chalk.cyan.bold("Available commands:"))
           for (const comm of _COMMS)
@@ -520,8 +513,8 @@ async function main() {
           if (input[1]) {
             const pStrength = passStrength(input[1])
             console.log(
-              `${pStrength.score} ${chalk.red.bold(
-                `[Occurances: ${await pwnedPassword(input[1])}]`
+              `${pStrength.score}${await timesPwned(
+                input[1]
               )} \nTime required to break password: ${pStrength.time}`
             )
             if (pStrength.feedback.warning)
@@ -604,7 +597,9 @@ async function main() {
                   __dirname + "/../databases/" + _NAME + "/" + fName + "/.tree",
                   JSON.stringify(dirTree)
                 )
-                console.log(chalk.green.bold("Archived directory successfully."))
+                console.log(
+                  chalk.green.bold("Archived directory successfully.")
+                )
                 updateTree()
               } else {
                 console.log(chalk.red.bold("Archive already exists"))
@@ -830,14 +825,14 @@ const gatherKeys = obj => {
 const diff = (a, b) => new Set(Array.from(a).filter(item => !b.has(item))),
   equalByKeys = (a, b) => diff(gatherKeys(a), gatherKeys(b)).size === 0
 
-function generatePassword() {
+function generatePassword(wordy) {
   const _lowerCase = "abcdefghijklmnopqrstuvwxyz"
   const _upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   const _numbers = "0123456789"
   const _specialChars = ",./;'[]\\=-`<>?\":|}{+_~!@#$%^&*()"
   let password
 
-  if (_DATABASE.settings.passwordWordy) {
+  if (wordy) {
     let seperator = _specialChars[crypt.random(_specialChars.length - 1)]
     let len = _WORDS.length - 1,
       front = "",
@@ -1014,8 +1009,18 @@ function getAllFiles(dir) {
 }
 
 function LOGO() {
-	const logo = fs.readFileSync(__dirname + "/../krypt.logo").toString()
+  const logo = fs.readFileSync(__dirname + "/../krypt.logo").toString()
   console.log(chalk.green.bold(logo))
+}
+
+async function timesPwned(pass) {
+  try {
+    const times = await pwnedPassword(pass)
+    if (times === 0) return chalk.green.bold("[No Occurances]")
+    return chalk.red.bold(`[Occurances:${times}]`)
+  } catch {
+    return chalk.red.bold("[No Internet]")
+  }
 }
 
 /*
@@ -1026,95 +1031,37 @@ function LOGO() {
  * if no arguments are found.
  */
 
-if (process.argv.length === 2) {
-  if (!fs.existsSync(__dirname + "/../config.json"))
-    fs.writeFileSync(
-      __dirname + "/../config.json",
-      '{"selected": "default","databases": ["default"]}'
-    )
-  _NAME = getDatabases()
-  _NAME = _NAME.selected
-  console.log("")
-  LOGO()
-  console.log("")
-  console.log(`\n${chalk.green.bold(`Database: [ ${_NAME} ]`)}\n`)
-  main()
-} else {
-  let args = process.argv.slice(2)
-  if (args[0] === "new") {
-    let config = getDatabases()
-    const newName = readlineSync.question("Enter database name: ")
-    if (is(newName, _BASENAME) && newName.length !== 0) {
-      if (!config.databases.includes(newName)) {
-        config.databases.push(newName)
-        fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
-        console.log(chalk.green.bold("Added new database."))
-      } else {
-        console.log(chalk.red.bold("Database already exists."))
-      }
-    } else {
-      console.log(
-        chalk.red.bold(
-          "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
-        )
+async function mainProcess() {
+  _WORDS = JSON.parse(fs.readFileSync(__dirname + "/../lib/dictionary.json"))
+  if (process.argv.length === 2) {
+    if (!fs.existsSync(__dirname + "/../config.json"))
+      fs.writeFileSync(
+        __dirname + "/../config.json",
+        '{"selected": "default","databases": ["default"]}'
       )
-    }
-  } else if (args[0] === "list") {
-    let config = getDatabases()
-    for (const databaseName of config.databases) {
-      console.log(chalk.blue.bold(databaseName))
-    }
-  } else if (args[0] === "switch") {
-    let config = getDatabases()
-    if (config.databases.includes(args[1])) {
-      config.selected = args[1]
-      fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
-      console.log(chalk.green.bold(`Switched to ${args[1]} database.`))
-    } else {
-      console.log(chalk.red.bold("Database not found."))
-    }
-  } else if (args[0] === "delete") {
-    let config = getDatabases()
-    if (config.databases.includes(args[1])) {
-      if (config.databases.length === 1) {
-        console.log(chalk.red.bold("Can't delete last database."))
-      } else {
-        if (
-          readlineSync.question(
-            chalk.red.bold(`Delete the ${args[1]} database? (yes): `)
-          ) === "yes"
-        ) {
-          if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
-            fs.unlinkSync(__dirname + "/../databases/" + args[1] + ".json")
-          config.databases.splice(config.databases.indexOf(args[1]), 1)
-          if (config.selected === args[1]) {
-            config.selected = config.databases[0]
-          }
-          console.log(chalk.green.bold(`Deleted ${args[1]} database.`))
+    _NAME = getDatabases()
+    _NAME = _NAME.selected
+    console.log("")
+    LOGO()
+    console.log("")
+    console.log(`\n${chalk.green.bold(`Database: [ ${_NAME} ]`)}\n`)
+    main()
+  } else {
+    let args = process.argv.slice(2)
+    if (args[0] === "new") {
+      let config = getDatabases()
+      const newName = readlineSync.question("Enter database name: ")
+      if (is(newName, _BASENAME) && newName.length !== 0) {
+        if (!config.databases.includes(newName)) {
+          config.databases.push(newName)
           fs.writeFileSync(
             __dirname + "/../config.json",
             JSON.stringify(config)
           )
+          console.log(chalk.green.bold("Added new database."))
         } else {
-          console.log(chalk.green.bold("Delete aborted."))
+          console.log(chalk.red.bold("Database already exists."))
         }
-      }
-    } else {
-      console.log(chalk.red.bold("Database not found."))
-    }
-  } else if (args[0] === "rename") {
-    let config = getDatabases()
-    if (config.databases.includes(args[1])) {
-      const newDBName = readlineSync.question("Enter new name: ")
-      if (is(newName, _BASENAME) && newDBName.length !== 0) {
-        if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
-          fs.renameSync(
-            __dirname + `/../databases/${args[1]}.json`,
-            __dirname + `/../databases/${newDBName}.json`
-          )
-        config.databases[config.databases.indexOf(args[1])] = newDBName
-        console.log(chalk.green.bold(`Renamed ${args[1]} to ${newDBName}.`))
-        fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
       } else {
         console.log(
           chalk.red.bold(
@@ -1122,26 +1069,131 @@ if (process.argv.length === 2) {
           )
         )
       }
-    } else {
-      console.log(chalk.red.bold("Database not found."))
-    }
-  } else if (args[0] === "current") {
-    console.log(chalk.blue.bold(getDatabases().selected))
-  } else if (args[0] === "version") {
-    const data = fs.readFileSync(__dirname + "/../package.json")
-    try {
-      console.log("v" + (JSON.parse(data).version || "0.0.0"))
-    } catch (err) {
+    } else if (args[0] === "list") {
+      let config = getDatabases()
+      for (const databaseName of config.databases) {
+        console.log(chalk.blue.bold(databaseName))
+      }
+    } else if (args[0] === "switch") {
+      let config = getDatabases()
+      if (config.databases.includes(args[1])) {
+        config.selected = args[1]
+        fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
+        console.log(chalk.green.bold(`Switched to ${args[1]} database.`))
+      } else {
+        console.log(chalk.red.bold("Database not found."))
+      }
+    } else if (args[0] === "delete") {
+      let config = getDatabases()
+      if (config.databases.includes(args[1])) {
+        if (config.databases.length === 1) {
+          console.log(chalk.red.bold("Can't delete last database."))
+        } else {
+          if (
+            readlineSync.question(
+              chalk.red.bold(`Delete the ${args[1]} database? (yes): `)
+            ) === "yes"
+          ) {
+            if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
+              fs.unlinkSync(__dirname + "/../databases/" + args[1] + ".json")
+            config.databases.splice(config.databases.indexOf(args[1]), 1)
+            if (config.selected === args[1]) {
+              config.selected = config.databases[0]
+            }
+            console.log(chalk.green.bold(`Deleted ${args[1]} database.`))
+            fs.writeFileSync(
+              __dirname + "/../config.json",
+              JSON.stringify(config)
+            )
+          } else {
+            console.log(chalk.green.bold("Delete aborted."))
+          }
+        }
+      } else {
+        console.log(chalk.red.bold("Database not found."))
+      }
+    } else if (args[0] === "rename") {
+      let config = getDatabases()
+      if (config.databases.includes(args[1])) {
+        const newDBName = readlineSync.question("Enter new name: ")
+        if (is(newName, _BASENAME) && newDBName.length !== 0) {
+          if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
+            fs.renameSync(
+              __dirname + `/../databases/${args[1]}.json`,
+              __dirname + `/../databases/${newDBName}.json`
+            )
+          config.databases[config.databases.indexOf(args[1])] = newDBName
+          console.log(chalk.green.bold(`Renamed ${args[1]} to ${newDBName}.`))
+          fs.writeFileSync(
+            __dirname + "/../config.json",
+            JSON.stringify(config)
+          )
+        } else {
+          console.log(
+            chalk.red.bold(
+              "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
+            )
+          )
+        }
+      } else {
+        console.log(chalk.red.bold("Database not found."))
+      }
+    } else if (args[0] === "current") {
+      console.log(chalk.blue.bold(getDatabases().selected))
+    } else if (args[0] === "version") {
+      const data = fs.readFileSync(__dirname + "/../package.json")
+      try {
+        console.log("v" + (JSON.parse(data).version || "0.0.0"))
+      } catch (err) {
+        console.log(
+          chalk.red.bold(
+            "[FATAL] The package.json has been corrupted. Invalid JSON. "
+          ) + err
+        )
+      }
+    } else if (args[0] === "license") {
       console.log(
-        chalk.red.bold(
-          "[FATAL] The package.json has been corrupted. Invalid JSON. "
-        ) + err
+        `\n${chalk.bold("Permissions:")}\n${chalk.green.bold(
+          "* Commercial use\n* Distribution\n* Modification\n* Private use"
+        )}\n\n${chalk.bold("Conditions:")}\n${chalk.cyan.bold(
+          "* License and copyright notice"
+        )}\n\n${chalk.bold("Limitations:")}\n${chalk.red.bold(
+          "* Liability\n* Warranty"
+        )}\n`
       )
+      console.log(
+        chalk.bold(fs.readFileSync(`${__dirname}/../LICENSE`).toString())
+      )
+    } else if (args[0] === "make") {
+      let wordy
+      if (args[1] === "wordy") wordy = true
+      else wordy = false
+      const newPass = generatePassword(wordy)
+      console.log(chalk.cyan.bold(newPass))
+      console.log(passStrength(newPass).score + (await timesPwned(newPass)))
+    } else if (args[0] === "strength") {
+      if (args[1]) {
+        const pStrength = passStrength(args[1])
+        console.log(
+          `${pStrength.score}${await timesPwned(
+            args[1]
+          )} \nTime required to break password: ${pStrength.time}`
+        )
+        if (pStrength.feedback.warning)
+          console.log(chalk.red.bold(`Warning: ${pStrength.feedback.warning}`))
+        if (pStrength.feedback.suggestions.length !== 0)
+          console.log(
+            chalk.green.bold(
+              `Suggestions: ${pStrength.feedback.suggestions.join(", ")}`
+            )
+          )
+      } else {
+        console.log(chalk.red.bold("Please enter a password."))
+      }
+    } else {
+      console.log(chalk.red.bold("Invalid argument."))
     }
-  } else if (args[0] === "license") {
-    console.log(`\n${chalk.bold("Permissions:")}\n${chalk.green.bold("* Commercial use\n* Distribution\n* Modification\n* Private use")}\n\n${chalk.bold("Conditions:")}\n${chalk.cyan.bold("* License and copyright notice")}\n\n${chalk.bold("Limitations:")}\n${chalk.red.bold("* Liability\n* Warranty")}\n`)
-    console.log(chalk.bold(fs.readFileSync(`${__dirname}/../LICENSE`).toString()))
-  } else {
-    console.log(chalk.red.bold("Invalid argument."))
   }
 }
+
+mainProcess()

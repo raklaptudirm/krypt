@@ -11,10 +11,12 @@ _________________________________________________
   \  \  |__|     \_____   | |   ____/  |  |
    \  \________________|  | |  |_______|  |
     \_____________________/ |_____________|
-    
+
 __________________________________________________
 ```
+
 # Krypt
+
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Mkorp-Official/Krypt/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/Mkorp-Official/Krypt)](https://github.com/Mkorp-Official/Krypt/issues)
@@ -22,8 +24,8 @@ __________________________________________________
 ![commit](https://img.shields.io/github/last-commit/Mkorp-Official/Krypt)
 ![release](https://img.shields.io/github/release-date/Mkorp-Official/Krypt)
 
- A smart, secure and minimalistic password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
- 
+A smart, secure and minimalistic password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
+
 [Docs Here](https://github.com/Mkorp-Official/Krypt/wiki)
 
 # Installation
@@ -61,5 +63,5 @@ krypt
 - [x] Encryption of Passwords
 
 # License:
-This software is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
 
+This software is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
