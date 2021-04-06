@@ -180,7 +180,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            isNaN(input) ||
+            Integer.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -192,7 +192,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            isNaN(input) ||
+            Integer.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -213,7 +213,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            isNaN(input) ||
+            Integer.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -304,7 +304,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            isNaN(input) ||
+            Integer.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
@@ -500,7 +500,7 @@ async function main() {
           input = parseInt(input[1]) - 1
           if (
             input === undefined ||
-            isNaN(input) ||
+            Integer.isNaN(input) ||
             input < 0 ||
             input >= _PASSWORDS.length
           ) {

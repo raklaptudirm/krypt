@@ -1,3 +1,7 @@
+# v3.2.1
+
+- Changed `isNaN()` to safer `Integer.isNaN()`.
+
 # v3.2.0
 
 - Added `krypt strength` and `krypt make` global functions.
