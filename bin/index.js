@@ -51,57 +51,193 @@ const _DATA_TEMPLATE = {
   },
   // todo: update help
   _COMMS = [
-    { name: "edit", use: "Edit; Edit a password", ex: "edit <pass_id>" },
-    {
-      name: "gent",
-      use: "Get entry; Get a password entry",
-      ex: "gent <pass_id>",
-    },
-    {
-      name: "gpass",
-      use: "Get password; Get the password of an entry",
-      ex: "gpass <pass_id>",
-    },
-    {
-      name: "npass",
-      use: "New Password; Create a new Password",
-      ex: "npass",
-    },
-    {
-      name: "sche",
-      use: "Security Check; Checks your password's security",
-      ex: "sche",
-    },
-    {
-      name: "cmast",
-      use: "Change Master; Changes the master password",
-      ex: "cmast",
-    },
-    {
-      name: "delete",
-      use: "Delete Password; Delete a password",
-      ex: "dpass <pass_id>",
-    },
-    {
-      name: "mpass",
-      use: "Make password; Generate a random password",
-      ex: "mpass",
-    },
-    { name: "exit ", use: "Exit; Exit the process", ex: "exit" },
-    { name: "list", use: "List; List all passwords", ex: "list" },
-    {
-      name: "search",
-      use: "Search; Search for a password",
-      ex: "search <keyword>",
-    },
-    {
-      name: "set",
-      use: "Set; Change a setting",
-      ex: "set <setting> <args>",
-    },
-    { name: "copy", use: "Copy; Copy a password", ex: "copy <pass_id>" },
+    "new",
+    "gent",
+    "gpass",
+    "secure",
+    "change",
+    "strength",
+    "make",
+    "edit",
+    "delete",
+    "set",
+    "help",
+    "exit",
+    "list",
+    "search",
+    "copy",
+    "archive",
   ],
-  _BASENAME = /[A-Za-z0-9-_.,]{1,100}/
+  _BASENAME = /[A-Za-z0-9-_.,]{1,100}/,
+  _HELP = {
+    krypt: {
+      use: "Global Krypt command.",
+      new: {
+        format: "krypt new",
+        use: "Create a new Krypt database",
+      },
+      switch: {
+        format: "krypt switch <db_name>",
+        use: "Switch to the given database.",
+      },
+      list: {
+        format: "krypt list",
+        use: "List all the present Krypt databases.",
+      },
+      delete: {
+        format: "krypt delete <db_name>",
+        use: "Delete a Krypt database.",
+      },
+      rename: {
+        format: "krypt rename <db_name>",
+        use: "Rename a Krypt database.",
+      },
+      license: {
+        format: "krypt license",
+        use: "Prints out the Krypt License.",
+      },
+      version: {
+        format: "krypt version",
+        use: "Prints out the Krypt version in use.",
+      },
+      make: {
+        format: "krypt make ?wordy",
+        use: "Generate a strong password based on arguments.",
+      },
+      strength: {
+        format: "krypt strength <password>",
+        use: "Gives the strength of the given password.",
+      },
+    },
+    gpass: {
+      format: "gpass <pass_id>",
+      use: "Get a password in clear-text.",
+    },
+    new: {
+      format: "new",
+      use: "Create a new password.",
+    },
+    delete: {
+      format: "delete <pass_id>",
+      use: "Delete an existing password.",
+    },
+    change: {
+      format: "change",
+      use: "Change the master password.",
+    },
+    exit: {
+      format: "exit",
+      use: "Exit the Krypt session.",
+    },
+    gent: {
+      format: "gent <entry_id>",
+      use: "Get a password entry.",
+    },
+    secure: {
+      format: "secure",
+      use: "Get security advise related to your passwords.",
+      weak: {
+        format: "secure weak",
+        use: "Get a list of saved passwords that are weak.",
+      },
+      leaked: {
+        format: "secure leaked",
+        use: "Get a list of saved passwords that have been leaked.",
+      },
+      dups: {
+        format: "secure dups",
+        use: "Get a list of saved passwords which are duplicates.",
+      },
+    },
+    make: {
+      format: "make",
+      use: "Generate a strong password based on settings.",
+    },
+    strength: {
+      format: "strength <password>",
+      use: "Gives the strength of the given password.",
+    },
+    help: {
+      format: "help <command>",
+      use: "Gives the uses and use example of a command.",
+    },
+    edit: {
+      format: "edit <pass_id>",
+      use: "Edit a stored password.",
+    },
+    list: {
+      format: "list",
+      use: "Lists all the stored passwords.",
+    },
+    search: {
+      format: "search <keyword>",
+      use: "Search a password with a particular name.",
+    },
+    copy: {
+      format: "copy <pass_id>",
+      use: "Copy a password to the clipboard.",
+    },
+    archive: {
+      use: "Archive command package to archive files and directories.",
+      new: {
+        use: "Command package to create a new archive.",
+        file: {
+          format: "archive new file",
+          use: "Archive a single file.",
+        },
+        dir: {
+          format: "archive new dir",
+          use: "Archive an entire directory.",
+        },
+      },
+      unarc: {
+        format: "archive unarc <archive_name>",
+        use: "Un-archive an archive with the given name.",
+      },
+    },
+    set: {
+      use: "Command package for changing Krypt settings.",
+      tfa: {
+        format: "set tfa",
+        use: "Enables 2-Factor Authentication, or edits it if already enabled.",
+        dis: {
+          format: "set tfa dis",
+          use: "Disable 2-Factor Authentication.",
+        },
+      },
+      hint: {
+        format: "set hint",
+        use: "Enables password hint, or edits it if already enabled.",
+        dis: {
+          format: "set tfa dis",
+          use: "Disable password hint.",
+        },
+      },
+      alias: {
+        use: "Command package for setting command aliases.",
+        new: {
+          format: "set alias new",
+          use: "Creates a new alias",
+        },
+        rename: {
+          format: "set alias rename",
+          use: "Rename a saved alias.",
+        },
+        delete: {
+          format: "set alias delete <alias_name>",
+          use: "Deletes the given alias.",
+        },
+        list: {
+          format: "set alias list",
+          use: "Lists the stored aliases.",
+        },
+      },
+      password: {
+        format: "set password",
+        use: "Toggles Wordy-Password",
+      },
+    },
+  }
 
 /*
  * Global Variables
@@ -316,13 +452,34 @@ async function main() {
           console.log(chalk.cyan.bold(newPass))
           console.log(passStrength(newPass).score + (await timesPwned(newPass)))
         } else if (input[0] === "help") {
-          console.log(chalk.cyan.bold("Available commands:"))
-          for (const comm of _COMMS)
+          input.splice(0, 1)
+          if (input.length > 0) {
+            if (input.includes("use") || input.includes("format")) {
+              console.log(WARN("Command not found."))
+            } else {
+              let manual = _HELP.getItem(input)
+              if (manual === undefined) {
+                console.log(WARN("Command not found."))
+              } else {
+                if (manual.format === undefined) {
+                  console.log(OK(manual.use) + "\n")
+                  console.log(
+                    chalk.bold(
+                      `Child commands:\n${Object.keys(manual)
+                        .filter(item => item !== "use")
+                        .join(", ")}`
+                    )
+                  )
+                } else {
+                  console.log(`${CODE(manual.format)}\n${OK(manual.use)}`)
+                }
+              }
+            }
+          } else {
             console.log(
-              `${OK(comm.name)}: ${chalk.yellow.bold(
-                comm.use
-              )}\nUse: ${chalk.cyan.bold(comm.ex)}\n`
+              WARN("The `help` command expects a command paramenter.")
             )
+          }
         } else if (input[0] === "edit") {
           input = parseInt(input[1]) - 1
           if (
@@ -369,7 +526,7 @@ async function main() {
           }
           if (notFound) console.log(WARN("No matches found."))
         } else if (input[0] === "set") {
-          if (input[1] === "2fa") {
+          if (input[1] === "tfa") {
             if (!_DATABASE.settings.TwoFA.on) {
               const sel = readlineSync.question(
                 OK("Enable 2-Factor Authentication? (yes): ")
@@ -824,12 +981,7 @@ async function main() {
  */
 
 function isNotCommand(name) {
-  for (const comm of _COMMS) {
-    if (comm.name === name) {
-      return false
-    }
-  }
-  return true
+  return !_COMMS.includes(name)
 }
 
 const gatherKeys = obj => {
@@ -1071,6 +1223,14 @@ async function getWeaks() {
   return [weakS, pwned, duplicates]
 }
 
+Object.prototype.getItem = function (path) {
+  let ob = this
+  for (const key of path) {
+    ob = ob[key]
+    if (ob === undefined) return undefined
+  }
+  return ob
+}
 /*
  * Main process
  *

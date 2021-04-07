@@ -1,3 +1,7 @@
+# v3.3.2
+
+- Improved `help` command.
+
 # v3.3.1
 
 - Added better security advise management.
