@@ -1,3 +1,12 @@
+# v3.3.1
+
+- Added better security advise management.
+- Added `chalk` themes.
+
+# v3.3.0
+
+- Added master password security checking.
+
 # v3.2.1
 
 - Changed `isNaN()` to safer `Number.isNaN()`.

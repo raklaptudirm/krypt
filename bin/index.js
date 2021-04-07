@@ -19,6 +19,14 @@ const clipboardy = require("clipboardy")
 const zxcvbn = require("zxcvbn")
 
 /*
+ * Terminal text themes
+ */
+
+const WARN = chalk.red.bold,
+  CODE = chalk.black.bgGreen,
+  OK = chalk.green.bold
+
+/*
  * Constants
  *
  * These variable are global constants
@@ -110,7 +118,8 @@ let _DATABASE,
   _2F,
   _NAME,
   _WORDS,
-  _TREE
+  _TREE,
+  _MAST
 
 /*
  * Main function
@@ -122,10 +131,8 @@ let _DATABASE,
 async function main() {
   if (fs.existsSync(__dirname + "/../databases/" + _NAME + ".json")) {
     if (!loadDatabase()) return
-    _KEY = crypt.PBKDF2_HASH(
-      readlineSync.question("PASSWORD: ", { hideEchoBack: true }),
-      _DATABASE.salt.key
-    )
+    _MAST = readlineSync.question("PASSWORD: ", { hideEchoBack: true })
+    _KEY = crypt.PBKDF2_HASH(_MAST, _DATABASE.salt.key)
 
     if (_DATABASE.settings.TwoFA.on)
       _2F = crypt.PBKDF2_HASH(
@@ -142,7 +149,7 @@ async function main() {
         _DATABASE.settings.TwoFA.answer.checksum ===
           crypt.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))
     ) {
-      console.log("\n" + chalk.green.bold("Logged in."))
+      console.log("\n" + OK("Logged in."))
       loadPasswords()
       while (true) {
         console.log("")
@@ -171,9 +178,7 @@ async function main() {
             }) || generatePassword()
           _PASSWORDS.push(createPass(name_, username_, password_))
           console.log(
-            chalk.green.bold(
-              `Sucessfully added password at ID:${_PASSWORDS.length}.`
-            )
+            OK(`Sucessfully added password at ID:${_PASSWORDS.length}.`)
           )
           reEncryptData()
         } else if (input[0] === "gent") {
@@ -184,7 +189,7 @@ async function main() {
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
-            console.log(chalk.red.bold("ID out of bounds."))
+            console.log(WARN("ID out of bounds."))
           } else {
             printPass(_PASSWORDS[input], input + 1)
           }
@@ -196,17 +201,17 @@ async function main() {
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
-            console.log(chalk.red.bold("ID out of bounds."))
+            console.log(WARN("ID out of bounds."))
           } else {
             const sel = readlineSync.question(
-              chalk.red(
+              WARN(
                 "This command will show your password in clear-text. Proceed? (yes): "
               )
             )
             if (sel === "yes") {
               console.log(chalk.cyan.bold(_PASSWORDS[input].password))
             } else {
-              console.log(chalk.green.bold("Command aborted."))
+              console.log(OK("Command aborted."))
             }
           }
         } else if (input[0] === "delete") {
@@ -217,76 +222,94 @@ async function main() {
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
-            console.log(chalk.red.bold("ID out of bounds."))
+            console.log(WARN("ID out of bounds."))
           } else {
             printPass(_PASSWORDS[input], input)
             const sel = readlineSync.question(
-              chalk.red.bold("Delete this entry? (yes): ")
+              WARN("Delete this entry? (yes): ")
             )
             if (sel === "yes") {
               _PASSWORDS.splice(input, 1)
-              console.log(chalk.green.bold("Password deleted Successfully."))
+              console.log(OK("Password deleted Successfully."))
               reEncryptData()
             } else {
-              console.log(chalk.green.bold("Delete aborted."))
+              console.log(OK("Delete aborted."))
             }
           }
         } else if (input[0] === "secure") {
-          let weak = [],
-            error = false,
-            list = {}
-          for (const i in _PASSWORDS) {
-            if (list[_PASSWORDS[i].password] === undefined)
-              list[_PASSWORDS[i].password] = []
-            list[_PASSWORDS[i].password].push(parseInt(i) + 1)
-            let strength = false,
-              pwned
-            if (
-              passStrength(_PASSWORDS[i].password).score !==
-              chalk.green.bold("[VERY STRONG]")
-            )
-              strength = true
-            try {
-              pwned = await pwnedPassword(_PASSWORDS[i].password)
-            } catch (err) {
+          const [Sweaks, Pweaks, Duplicates] = await getWeaks()
+          if (input[1] === undefined) {
+            if (Sweaks.length > 0) {
               console.log(
-                chalk.red.bold(
-                  "You are not connected to the Internet. Krypt needs an Internet connection to check if your passwords have been leaked or not."
-                )
+                WARN(`✗ Some of your passwords are weak. `) +
+                  CODE("secure weak") +
+                  WARN(` for more information.`)
               )
-              error = true
-              break
+            } else {
+              console.log(OK("✓ All of the passwords are strong."))
             }
-            if (!error && (strength || pwned))
-              weak.push({ id: i, pwned: pwned })
-          }
-          if (!error) {
-            if (weak.length !== 0) {
-              for (const i of weak) {
-                printPass(_PASSWORDS[i.id], parseInt(i.id) + 1)
-                if (i.pwned)
-                  console.log(
-                    chalk.red.bold(
-                      `This password has been seen ${i.pwned} times before!`
-                    )
-                  )
-                else
-                  console.log(
-                    chalk.green.bold("This password hasn't been seen before.")
-                  )
-                console.log("")
+            if (Array.isArray(Pweaks)) {
+              if (Pweaks.length > 0) {
+                console.log(
+                  WARN(`✗ Some of your passwords are leaked. `) +
+                    CODE("secure leaked") +
+                    WARN(` for more information.`)
+                )
+              } else {
+                console.log(OK("✓ None of the passwords are leaked."))
               }
             } else {
-              console.log(chalk.green.bold("All your passwords are secure."))
+              console.log(Pweaks)
             }
-          }
-          for (const i in list) {
-            if (list[i].length > 1)
+            if (Duplicates.length > 0) {
               console.log(
-                chalk.red.bold`Entries of id ${list[i].join(
-                  ", "
-                )} have the same password.`
+                WARN(`✗ Some of your passwords are duplicates. `) +
+                  CODE("secure dups") +
+                  WARN(` for more information.`)
               )
+            } else {
+              console.log(OK("✓ All of the passwords are unique."))
+            }
+            if (passStrength(_MAST) !== OK("[VERY STRONG]")) {
+              console.log(WARN("✗ Your master password is weak."))
+            } else if (await pwnedPassword(_MAST)) {
+              console.log(WARN("✗ Your master password has been leaked."))
+            } else {
+              console.log(OK("✓ All of the passwords are unique."))
+            }
+          } else if (input[1] === "weak") {
+            if (Sweaks.length > 0) {
+              for (const i in Sweaks) {
+                console.log("")
+                printPass(_PASSWORDS[i], parseInt(i))
+              }
+            } else {
+              console.log(OK("All of the passwords are strong."))
+            }
+          } else if (input[1] === "leaked") {
+            if (Pweaks.length > 0) {
+              for (const i in Pweaks) {
+                console.log("")
+                printPass(_PASSWORDS[i], parseInt(i))
+                console.log(await timesPwned(_PASSWORDS[i].password))
+              }
+            } else {
+              console.log(OK("None of the passwords are leaked."))
+            }
+          } else if (input[1] === "dups") {
+            if (Duplicates.length > 0) {
+              for (const i of Duplicates) {
+                console.log(
+                  WARN(
+                    `Passwords with ids ${i.join(", ")} have the same password.`
+                  )
+                )
+              }
+            } else {
+              console.log(OK("All of the passwords are unique."))
+            }
+          } else {
+            console.log(WARN("Invalid argument."))
           }
         } else if (input[0] === "make") {
           const newPass = generatePassword(_DATABASE.settings.passwordWordy)
@@ -296,7 +319,7 @@ async function main() {
           console.log(chalk.cyan.bold("Available commands:"))
           for (const comm of _COMMS)
             console.log(
-              `${chalk.green.bold(comm.name)}: ${chalk.yellow.bold(
+              `${OK(comm.name)}: ${chalk.yellow.bold(
                 comm.use
               )}\nUse: ${chalk.cyan.bold(comm.ex)}\n`
             )
@@ -308,7 +331,7 @@ async function main() {
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
-            console.log(chalk.red.bold("ID out of bounds."))
+            console.log(WARN("ID out of bounds."))
           } else {
             const name_ = readlineSync.question(
               "Password Name (leave empty to keep same): "
@@ -325,7 +348,7 @@ async function main() {
               username_ || _PASSWORDS[input].username,
               password_
             )
-            console.log(chalk.green.bold("Successfully edited password."))
+            console.log(OK("Successfully edited password."))
             reEncryptData()
           }
         } else if (input[0] === "list") {
@@ -334,7 +357,7 @@ async function main() {
             printPass(_PASSWORDS[i], parseInt(i) + 1)
           }
           if (_PASSWORDS.length === 0)
-            console.log(chalk.red.bold("You do not have any stored passwords."))
+            console.log(WARN("You do not have any stored passwords."))
         } else if (input[0] === "search") {
           let notFound = true
           for (const i in _PASSWORDS) {
@@ -344,12 +367,12 @@ async function main() {
               console.log("")
             }
           }
-          if (notFound) console.log(chalk.red.bold("No matches found."))
+          if (notFound) console.log(WARN("No matches found."))
         } else if (input[0] === "set") {
           if (input[1] === "2fa") {
             if (!_DATABASE.settings.TwoFA.on) {
               const sel = readlineSync.question(
-                chalk.green.bold("Enable 2-Factor Authentication? (yes): ")
+                OK("Enable 2-Factor Authentication? (yes): ")
               )
               if (sel === "yes") {
                 _DATABASE.settings.TwoFA.on = true
@@ -362,22 +385,22 @@ async function main() {
                 _DATABASE.salt.TwoFA = _2F.salt
                 _2F = _2F.checksum
                 _DATABASE.settings.TwoFA.answer = crypt.PBKDF2_HASH(_2F)
-                console.log(chalk.green.bold("Enabled 2 factor Auth."))
+                console.log(OK("Enabled 2 factor Auth."))
                 reEncryptData()
               } else {
-                console.log(chalk.red.bold("Command aborted."))
+                console.log(WARN("Command aborted."))
               }
             } else {
               if (input[2] === "dis") {
                 const sel = readlineSync.question(
-                  chalk.red.bold("Disable 2-Factor Authentication? (yes): ")
+                  WARN("Disable 2-Factor Authentication? (yes): ")
                 )
                 if (sel === "yes") {
                   _DATABASE.settings.TwoFA.on = false
-                  console.log(chalk.green.bold("Disabled 2 factor Auth."))
+                  console.log(OK("Disabled 2 factor Auth."))
                   reEncryptData()
                 } else {
-                  console.log(chalk.green.bold("Command aborted."))
+                  console.log(OK("Command aborted."))
                 }
               } else {
                 _DATABASE.settings.TwoFA.question =
@@ -390,43 +413,39 @@ async function main() {
                 _DATABASE.salt.TwoFA = _2F.salt
                 _2F = _2F.checksum
                 _DATABASE.settings.TwoFA.answer = crypt.PBKDF2_HASH(_2F)
-                console.log(chalk.green.bold("Changed Auth factors."))
+                console.log(OK("Changed Auth factors."))
                 reEncryptData()
               }
             }
           } else if (input[1] === "hint") {
             if (!_DATABASE.settings.hint.on) {
-              const sel = readlineSync.question(
-                chalk.green.bold("Enable Hint? (yes): ")
-              )
+              const sel = readlineSync.question(OK("Enable Hint? (yes): "))
               if (sel === "yes") {
                 _DATABASE.settings.hint.on = true
                 _DATABASE.settings.hint.hint = readlineSync.question(
                   "Enter a hint: "
                 )
-                console.log(chalk.green.bold("Enabled Hint."))
+                console.log(OK("Enabled Hint."))
                 reEncryptData()
               } else {
-                console.log(chalk.red.bold("Command aborted."))
+                console.log(WARN("Command aborted."))
               }
             } else {
               if (input[2] === "dis") {
-                const sel = readlineSync.question(
-                  chalk.red.bold("Disable Hint? (yes): ")
-                )
+                const sel = readlineSync.question(WARN("Disable Hint? (yes): "))
                 if (sel === "yes") {
                   _DATABASE.settings.hint.on = false
-                  console.log(chalk.green.bold("Disabled Hint."))
+                  console.log(OK("Disabled Hint."))
                   reEncryptData()
                 } else {
-                  console.log(chalk.green.bold("Command aborted."))
+                  console.log(OK("Command aborted."))
                 }
               } else {
                 _DATABASE.settings.hint.hint =
                   readlineSync.question(
                     "Enter new hint (Keep empty to keep the same):"
                   ) || _DATABASE.settings.hint.hint
-                console.log(chalk.green.bold("Changed Hint."))
+                console.log(OK("Changed Hint."))
                 reEncryptData()
               }
             }
@@ -441,35 +460,35 @@ async function main() {
                   _DATABASE.settings.alias[alias] = readlineSync.question(
                     "Enter alias command: "
                   )
-                  console.log(chalk.green.bold("Alias set."))
+                  console.log(OK("Alias set."))
                   reEncryptData()
                 } else {
-                  console.log(chalk.red.bold("Illegal alias name."))
+                  console.log(WARN("Illegal alias name."))
                 }
               } else {
-                console.log(chalk.red.bold("Command already exists."))
+                console.log(WARN("Command already exists."))
               }
             } else if (input[2] === "rename") {
               if (_DATABASE.settings.alias[input[3]] === undefined) {
-                console.log(chalk.red.bold("Could not find alias."))
+                console.log(WARN("Could not find alias."))
               } else {
                 const alias = readlineSync.question("Enter new name: ")
                 if (is(alias, _BASENAME)) {
                   _DATABASE.settings.alias[alias] =
                     _DATABASE.settings.alias[input[3]]
                   delete _DATABASE.settings.alias[input[3]]
-                  console.log(chalk.green.bold("Alias renamed successfully."))
+                  console.log(OK("Alias renamed successfully."))
                   reEncryptData()
                 } else {
-                  console.log(chalk.red.bold("Illegal alias name."))
+                  console.log(WARN("Illegal alias name."))
                 }
               }
             } else if (input[2] === "delete") {
               if (_DATABASE.settings.alias[input[3]] === undefined) {
-                console.log(chalk.red.bold("Could not find alias."))
+                console.log(WARN("Could not find alias."))
               } else {
                 delete _DATABASE.settings.alias[input[3]]
-                console.log(chalk.green.bold("Alias deleted successfully."))
+                console.log(OK("Alias deleted successfully."))
                 reEncryptData()
               }
             } else if (input[2] === "list") {
@@ -482,19 +501,17 @@ async function main() {
                 )
               }
               if (Object.keys(_DATABASE.settings.alias).length === 0)
-                console.log(
-                  chalk.red.bold("You do not have any stored aliases.")
-                )
+                console.log(WARN("You do not have any stored aliases."))
             } else {
-              console.log(chalk.red.bold("Undefined argument."))
+              console.log(WARN("Undefined argument."))
             }
           } else if (input[1] === "password") {
             _DATABASE.settings.passwordWordy = !_DATABASE.settings.passwordWordy
             if (_DATABASE.settings.passwordWordy)
-              console.log(chalk.green.bold("Enabled wordy password."))
-            else console.log(chalk.green.bold("Disabled wordy password."))
+              console.log(OK("Enabled wordy password."))
+            else console.log(OK("Disabled wordy password."))
           } else {
-            console.log(chalk.red.bold("Setting not found."))
+            console.log(WARN("Setting not found."))
           }
         } else if (input[0] === "copy") {
           input = parseInt(input[1]) - 1
@@ -504,10 +521,10 @@ async function main() {
             input < 0 ||
             input >= _PASSWORDS.length
           ) {
-            console.log(chalk.red.bold("ID out of bounds."))
+            console.log(WARN("ID out of bounds."))
           } else {
             clipboardy.writeSync(_PASSWORDS[input].password)
-            console.log(chalk.green.bold("Password copied to clipboard."))
+            console.log(OK("Password copied to clipboard."))
           }
         } else if (input[0] === "strength") {
           if (input[1]) {
@@ -518,17 +535,13 @@ async function main() {
               )} \nTime required to break password: ${pStrength.time}`
             )
             if (pStrength.feedback.warning)
-              console.log(
-                chalk.red.bold(`Warning: ${pStrength.feedback.warning}`)
-              )
+              console.log(WARN(`Warning: ${pStrength.feedback.warning}`))
             if (pStrength.feedback.suggestions.length !== 0)
               console.log(
-                chalk.green.bold(
-                  `Suggestions: ${pStrength.feedback.suggestions.join(", ")}`
-                )
+                OK(`Suggestions: ${pStrength.feedback.suggestions.join(", ")}`)
               )
           } else {
-            console.log(chalk.red.bold("Please enter a password."))
+            console.log(WARN("Please enter a password."))
           }
         } else if (input[0] === "archive") {
           if (!fs.existsSync(__dirname + "/../databases/" + _NAME))
@@ -556,10 +569,10 @@ async function main() {
                   JSON.stringify(binEncryptFile(fs.readFileSync(fPath)))
                 )
                 fs.unlinkSync(fPath)
-                console.log(chalk.green.bold("Archived file successfully."))
+                console.log(OK("Archived file successfully."))
                 updateTree()
               } else {
-                console.log(chalk.red.bold("Archive already exists."))
+                console.log(WARN("Archive already exists."))
               }
             } else if (input[2] === "dir") {
               const fPath = readlineSync.questionPath(
@@ -597,20 +610,18 @@ async function main() {
                   __dirname + "/../databases/" + _NAME + "/" + fName + "/.tree",
                   JSON.stringify(dirTree)
                 )
-                console.log(
-                  chalk.green.bold("Archived directory successfully.")
-                )
+                console.log(OK("Archived directory successfully."))
                 updateTree()
               } else {
-                console.log(chalk.red.bold("Archive already exists"))
+                console.log(WARN("Archive already exists"))
               }
             } else {
-              console.log(chalk.red.bold("Illegal command."))
+              console.log(WARN("Illegal command."))
             }
           } else if (input[1] === "unarc") {
             if (_TREE[input[2]] === undefined) {
               console.log(
-                chalk.red.bold(`Archived file with name ${input[2]} not found.`)
+                WARN(`Archived file with name ${input[2]} not found.`)
               )
             } else if (_TREE[input[2]] === "DIRECTORY") {
               let dirTree = JSON.parse(
@@ -654,7 +665,7 @@ async function main() {
               }
               delete _TREE[input[2]]
               console.log(
-                chalk.green.bold(
+                OK(
                   `Unarchived file sucessfully. It can be found at ${dirTree.path}`
                 )
               )
@@ -683,7 +694,7 @@ async function main() {
               )
               fs.writeFileSync(_TREE[input[2]], file)
               console.log(
-                chalk.green.bold(
+                OK(
                   `Unarchived file sucessfully. It can be found at ${
                     _TREE[input[2]]
                   }`
@@ -693,22 +704,22 @@ async function main() {
               updateTree()
             }
           } else {
-            console.log(chalk.red.bold("Invalid argument."))
+            console.log(WARN("Invalid argument."))
           }
         } else {
-          console.log(chalk.red.bold("Invalid command."))
+          console.log(WARN("Invalid command."))
         }
       }
     } else {
       console.log(
-        chalk.red.bold(
+        WARN(
           _DATABASE.settings.TwoFA.on
             ? "Wrong Password or 2nd factor."
             : "Wrong Password."
         )
       )
       if (_DATABASE.settings.hint.on)
-        console.log(chalk.green.bold(`Hint: ${_DATABASE.settings.hint.hint}`))
+        console.log(OK(`Hint: ${_DATABASE.settings.hint.hint}`))
     }
   } else {
     _DATABASE = _DATA_TEMPLATE
@@ -786,16 +797,30 @@ async function main() {
  *      Checks if arg:string matches arg:regexp
  *      returns -> bool
  * [15] binEncryptFile
+ *        file -> Buffer
  *      Encrypt a file
+ *      returns -> Object > ciphertext
  * [16] binDecryptFile
+ *        ciphertext -> Object > ciphertext
  *      Decrypt a file
+ *      returns -> Buffer
  * [17] updateTree
  *      Updates the .tree file of the database archive
+ *      returns -> void
  * [18] getAllFiles
  *        dir -> String > path
  *      Get a list of all files in a directory
+ *      returns -> Array[path...]
  * [19] LOGO
  *      Print the Krypt logo into the terminal
+ *      returns -> void
+ * [20] timesPwned
+ *        pass -> String
+ *      Checks how many times arg:pass has been leaked.
+ *      returns -> String
+ * [21] getWeaks
+ *      Get the weak, leaked and duplicate passwords.
+ *      returns -> Array[Array, Array, Array]
  */
 
 function isNotCommand(name) {
@@ -868,18 +893,18 @@ function generatePassword(wordy) {
             password += _specialChars[crypt.random(_specialChars.length - 1)]
         }
       }
-    } while (passStrength(password).score !== chalk.green.bold("[VERY STRONG]"))
+    } while (passStrength(password).score !== OK("[VERY STRONG]"))
   }
   return password
 }
 
 function passStrength(pass) {
   const measure = [
-    chalk.red.bold("[VERY WEAK]"),
+    WARN("[VERY WEAK]"),
     chalk.yellow.bold("[WEAK]"),
     "[MEDIUM]",
     chalk.blue.bold("[STRONG]"),
-    chalk.green.bold("[VERY STRONG]"),
+    OK("[VERY STRONG]"),
   ]
 
   const power = zxcvbn(pass)
@@ -914,16 +939,12 @@ function loadDatabase() {
     _DATABASE = JSON.parse(data)
     if (equalByKeys(_DATA_TEMPLATE, _DATABASE)) return true
     console.log(
-      chalk.red.bold(
-        "[FATAL] The database has been corrupted. Invalid Property List"
-      )
+      WARN("[FATAL] The database has been corrupted. Invalid Property List")
     )
     return false
   } catch (err) {
     console.log(
-      chalk.red.bold(
-        "[FATAL] The database has been corrupted. Invalid JSON. "
-      ) + err
+      WARN("[FATAL] The database has been corrupted. Invalid JSON. ") + err
     )
     return false
   }
@@ -962,9 +983,7 @@ function getDatabases() {
     return config
   } catch (err) {
     console.log(
-      chalk.red.bold(
-        "[FATAL] The database list has been corrupted. Invalid JSON. "
-      ) + err
+      WARN("[FATAL] The database list has been corrupted. Invalid JSON. ") + err
     )
     return false
   }
@@ -1010,17 +1029,46 @@ function getAllFiles(dir) {
 
 function LOGO() {
   const logo = fs.readFileSync(__dirname + "/../krypt.logo").toString()
-  console.log(chalk.green.bold(logo))
+  console.log(OK(logo))
 }
 
 async function timesPwned(pass) {
   try {
     const times = await pwnedPassword(pass)
-    if (times === 0) return chalk.green.bold("[No Occurances]")
-    return chalk.red.bold(`[Occurances:${times}]`)
+    if (times === 0) return OK("[No Occurances]")
+    return WARN(`[Occurances:${times}]`)
   } catch {
-    return chalk.red.bold("[No Internet]")
+    return WARN("[No Internet]")
   }
+}
+
+async function getWeaks() {
+  let weakS = [],
+    pwned = [],
+    list = {},
+    duplicates = [],
+    Internet = true
+  for (const i in _PASSWORDS) {
+    if (list[_PASSWORDS[i].password] === undefined)
+      list[_PASSWORDS[i].password] = []
+    list[_PASSWORDS[i].password].push(parseInt(i) + 1)
+
+    if (passStrength(_PASSWORDS[i].password).score !== OK("[VERY STRONG]"))
+      weakS.push(i)
+    if (Internet) {
+      try {
+        if ((await pwnedPassword(_PASSWORDS[i].password)) > 0) pwned.push(i)
+      } catch {
+        pwned = WARN("[No Internet]")
+      }
+    }
+  }
+
+  for (const i in list) {
+    if (list[i].length > 1) duplicates.push(list[i])
+  }
+
+  return [weakS, pwned, duplicates]
 }
 
 /*
@@ -1044,7 +1092,7 @@ async function mainProcess() {
     console.log("")
     LOGO()
     console.log("")
-    console.log(`\n${chalk.green.bold(`Database: [ ${_NAME} ]`)}\n`)
+    console.log(`\n${OK(`Database: [ ${_NAME} ]`)}\n`)
     main()
   } else {
     let args = process.argv.slice(2)
@@ -1058,13 +1106,13 @@ async function mainProcess() {
             __dirname + "/../config.json",
             JSON.stringify(config)
           )
-          console.log(chalk.green.bold("Added new database."))
+          console.log(OK("Added new database."))
         } else {
-          console.log(chalk.red.bold("Database already exists."))
+          console.log(WARN("Database already exists."))
         }
       } else {
         console.log(
-          chalk.red.bold(
+          WARN(
             "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
           )
         )
@@ -1079,19 +1127,19 @@ async function mainProcess() {
       if (config.databases.includes(args[1])) {
         config.selected = args[1]
         fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
-        console.log(chalk.green.bold(`Switched to ${args[1]} database.`))
+        console.log(OK(`Switched to ${args[1]} database.`))
       } else {
-        console.log(chalk.red.bold("Database not found."))
+        console.log(WARN("Database not found."))
       }
     } else if (args[0] === "delete") {
       let config = getDatabases()
       if (config.databases.includes(args[1])) {
         if (config.databases.length === 1) {
-          console.log(chalk.red.bold("Can't delete last database."))
+          console.log(WARN("Can't delete last database."))
         } else {
           if (
             readlineSync.question(
-              chalk.red.bold(`Delete the ${args[1]} database? (yes): `)
+              WARN(`Delete the ${args[1]} database? (yes): `)
             ) === "yes"
           ) {
             if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
@@ -1100,22 +1148,22 @@ async function mainProcess() {
             if (config.selected === args[1]) {
               config.selected = config.databases[0]
             }
-            console.log(chalk.green.bold(`Deleted ${args[1]} database.`))
+            console.log(OK(`Deleted ${args[1]} database.`))
             fs.writeFileSync(
               __dirname + "/../config.json",
               JSON.stringify(config)
             )
           } else {
-            console.log(chalk.green.bold("Delete aborted."))
+            console.log(OK("Delete aborted."))
           }
         }
       } else {
-        console.log(chalk.red.bold("Database not found."))
+        console.log(WARN("Database not found."))
       }
     } else if (args[0] === "rename") {
       let config = getDatabases()
       if (config.databases.includes(args[1])) {
-        const newDBName = readlineSync.question("Enter new name: ")
+        const newDBName = readlineShync.question("Enter new name: ")
         if (is(newName, _BASENAME) && newDBName.length !== 0) {
           if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
             fs.renameSync(
@@ -1123,20 +1171,20 @@ async function mainProcess() {
               __dirname + `/../databases/${newDBName}.json`
             )
           config.databases[config.databases.indexOf(args[1])] = newDBName
-          console.log(chalk.green.bold(`Renamed ${args[1]} to ${newDBName}.`))
+          console.log(OK(`Renamed ${args[1]} to ${newDBName}.`))
           fs.writeFileSync(
             __dirname + "/../config.json",
             JSON.stringify(config)
           )
         } else {
           console.log(
-            chalk.red.bold(
+            WARN(
               "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
             )
           )
         }
       } else {
-        console.log(chalk.red.bold("Database not found."))
+        console.log(WARN("Database not found."))
       }
     } else if (args[0] === "current") {
       console.log(chalk.blue.bold(getDatabases().selected))
@@ -1146,18 +1194,17 @@ async function mainProcess() {
         console.log("v" + (JSON.parse(data).version || "0.0.0"))
       } catch (err) {
         console.log(
-          chalk.red.bold(
-            "[FATAL] The package.json has been corrupted. Invalid JSON. "
-          ) + err
+          WARN("[FATAL] The package.json has been corrupted. Invalid JSON. ") +
+            err
         )
       }
     } else if (args[0] === "license") {
       console.log(
-        `\n${chalk.bold("Permissions:")}\n${chalk.green.bold(
+        `\n${chalk.bold("Permissions:")}\n${OK(
           "* Commercial use\n* Distribution\n* Modification\n* Private use"
         )}\n\n${chalk.bold("Conditions:")}\n${chalk.cyan.bold(
           "* License and copyright notice"
-        )}\n\n${chalk.bold("Limitations:")}\n${chalk.red.bold(
+        )}\n\n${chalk.bold("Limitations:")}\n${WARN(
           "* Liability\n* Warranty"
         )}\n`
       )
@@ -1180,18 +1227,16 @@ async function mainProcess() {
           )} \nTime required to break password: ${pStrength.time}`
         )
         if (pStrength.feedback.warning)
-          console.log(chalk.red.bold(`Warning: ${pStrength.feedback.warning}`))
+          console.log(WARN(`Warning: ${pStrength.feedback.warning}`))
         if (pStrength.feedback.suggestions.length !== 0)
           console.log(
-            chalk.green.bold(
-              `Suggestions: ${pStrength.feedback.suggestions.join(", ")}`
-            )
+            OK(`Suggestions: ${pStrength.feedback.suggestions.join(", ")}`)
           )
       } else {
-        console.log(chalk.red.bold("Please enter a password."))
+        console.log(WARN("Please enter a password."))
       }
     } else {
-      console.log(chalk.red.bold("Invalid argument."))
+      console.log(WARN("Invalid argument."))
     }
   }
 }
