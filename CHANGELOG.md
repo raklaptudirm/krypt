@@ -1,3 +1,8 @@
+# v3.3.3
+
+- Fixed password strength calculation problem (#3).
+- Fixed broken master password security test.
+
 # v3.3.2
 
 - Improved `help` command.

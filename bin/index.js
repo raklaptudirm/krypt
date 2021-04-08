@@ -10,13 +10,13 @@
 
 "use strict"
 
+const zxcvbn = require("zxcvbn")
 const { pwnedPassword } = require("hibp")
 const fs = require("fs")
 const crypt = require("../lib/encrypt.js")
 const readlineSync = require("readline-sync")
 const chalk = require("chalk")
 const clipboardy = require("clipboardy")
-const zxcvbn = require("zxcvbn")
 
 /*
  * Terminal text themes
@@ -406,12 +406,12 @@ async function main() {
             } else {
               console.log(OK("✓ All of the passwords are unique."))
             }
-            if (passStrength(_MAST) !== OK("[VERY STRONG]")) {
+            if (passStrength(_MAST).score !== OK("[VERY STRONG]")) {
               console.log(WARN("✗ Your master password is weak."))
             } else if (await pwnedPassword(_MAST)) {
               console.log(WARN("✗ Your master password has been leaked."))
             } else {
-              console.log(OK("✓ All of the passwords are unique."))
+              console.log(OK("✓ Your master password is strong."))
             }
           } else if (input[1] === "weak") {
             if (Sweaks.length > 0) {
@@ -457,7 +457,7 @@ async function main() {
             if (input.includes("use") || input.includes("format")) {
               console.log(WARN("Command not found."))
             } else {
-              let manual = _HELP.getItem(input)
+              let manual = getItem(_HELP, input)
               if (manual === undefined) {
                 console.log(WARN("Command not found."))
               } else {
@@ -978,6 +978,11 @@ async function main() {
  * [21] getWeaks
  *      Get the weak, leaked and duplicate passwords.
  *      returns -> Array[Array, Array, Array]
+ * [22] getItems
+ *        ob -> Object
+ *        path -> string
+ *      Gives the information at arg:path in arg:ob
+ *      returns -> Any
  */
 
 function isNotCommand(name) {
@@ -1050,7 +1055,7 @@ function generatePassword(wordy) {
   return password
 }
 
-function passStrength(pass) {
+function passStrength(passwordS) {
   const measure = [
     WARN("[VERY WEAK]"),
     chalk.yellow.bold("[WEAK]"),
@@ -1059,7 +1064,7 @@ function passStrength(pass) {
     OK("[VERY STRONG]"),
   ]
 
-  const power = zxcvbn(pass)
+  const power = zxcvbn(passwordS)
   return {
     score: measure[power.score],
     time: power.crack_times_display.online_no_throttling_10_per_second,
@@ -1223,8 +1228,7 @@ async function getWeaks() {
   return [weakS, pwned, duplicates]
 }
 
-Object.prototype.getItem = function (path) {
-  let ob = this
+function getItem(ob, path) {
   for (const key of path) {
     ob = ob[key]
     if (ob === undefined) return undefined
