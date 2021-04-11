@@ -304,7 +304,7 @@ async function main() {
         input = input.split(" ")
 
         if (input[0] === "exit") {
-          console.clear()
+          console.log("\u001b[2J")
           break
         } else if (input[0] === "change") {
           _KEY = crypt.PBKDF2_HASH(
@@ -422,6 +422,11 @@ async function main() {
             } else {
               console.log(OK("✓ Your master password is strong."))
             }
+            if (_DATABASE.settings.TwoFA.on) {
+              console.log(OK("✓ 2-Factor Auth is enabled."))
+            } else {
+              console.log(WARN("✗ 2-Factor Auth is disabled."))
+            }
           } else if (input[1] === "weak") {
             if (Sweaks.length > 0) {
               for (const i in Sweaks) {
@@ -474,11 +479,14 @@ async function main() {
                   console.log(OK(manual.use) + "\n")
                   console.log(
                     chalk.bold(
-                      `Child commands:\n${Object.keys(manual)
-                        .filter(item => item !== "use")
-                        .join(", ")}`
+                      `Child commands:`
                     )
                   )
+                  Object.keys(manual)
+                    .filter(item => item !== "use")
+                    .forEach(item => {
+                      console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
+                    })
                 } else {
                   console.log(`${CODE(manual.format)}\n${OK(manual.use)}`)
                 }
@@ -1431,7 +1439,7 @@ async function mainProcess() {
         )}\n`
       )
       console.log(
-        chalk.bold(fs.readFileSync(`${__dirname}/../LICENSE`).toString())
+        chalk.whiteBright(fs.readFileSync(`${__dirname}/../LICENSE`).toString())
       )
     } else if (args[0] === "make") {
       let wordy
