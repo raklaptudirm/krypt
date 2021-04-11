@@ -1,3 +1,11 @@
+# v3.3.5
+
+- On log-in, password input gets hidden.
+
+# v3.3.4
+
+- New Krypt Logo
+
 # v3.3.3
 
 - Fixed password strength calculation problem (#3).

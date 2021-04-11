@@ -47,7 +47,10 @@ const _DATA_TEMPLATE = {
       alias: {},
       passwordWordy: false,
     },
-    data: { iv: "", encryptedData: "" },
+    data: {
+      passwords: { iv: "", encryptedData: "" },
+      notes: { iv: "", encryptedData: "" },
+    },
   },
   // todo: update help
   _COMMS = [
@@ -255,7 +258,8 @@ let _DATABASE,
   _NAME,
   _WORDS,
   _TREE,
-  _MAST
+  _MAST,
+  _NOTES
 
 /*
  * Main function
@@ -285,8 +289,13 @@ async function main() {
         _DATABASE.settings.TwoFA.answer.checksum ===
           crypt.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))
     ) {
+      console.log("\u001b[2J")
+      console.log("")
+      LOGO()
+      console.log("")
+      console.log(`\n${OK(`Database: [ ${_NAME} ]`)}\n`)
       console.log("\n" + OK("Logged in."))
-      loadPasswords()
+      loadData()
       while (true) {
         console.log("")
         let input = readlineSync.prompt() //.toLowerCase()
@@ -863,6 +872,55 @@ async function main() {
           } else {
             console.log(WARN("Invalid argument."))
           }
+        } else if (input[0] === "notes") {
+          if (input[1] === "new") {
+            let name = readlineSync.question("Enter note name: ")
+            let lines = []
+            console.log(`Enter your note. Enter to go to next line. Type END to end input: \n\n${"-".repeat(24)}\n`)
+            readlineSync.promptLoop(line => {
+              lines.push(line)
+              return line === "END"
+            }, {prompt: ''})
+            lines.pop()
+            lines = lines.join("\n")
+            _NOTES.push({name: name, info: lines})
+            console.log(OK("Added note."))
+            reEncryptData()
+          } else if (input[1] === "get") {
+            input = parseInt(input[2]) - 1
+            if (
+              input === undefined ||
+              Number.isNaN(input) ||
+              input < 0 ||
+              input >= _NOTES.length
+            ) {
+              console.log(WARN("ID out of bounds."))
+            } else {
+              console.log(`\n${chalk.bold(`[${input + 1}] ${chalk.bold(_NOTES[input].name)}`)}\n\n${_NOTES[input].info}`)
+            }
+          } else if (input[1] === "delete") {
+            input = parseInt(input[2]) - 1
+            if (
+              input === undefined ||
+              Number.isNaN(input) ||
+              input < 0 ||
+              input >= _NOTES.length
+            ) {
+              console.log(WARN("ID out of bounds."))
+            } else {
+              console.log(`\n${chalk.bold(`[${input + 1}] ${chalk.bold(_NOTES[input].name)}`)}\n\n${_NOTES[input].info}\n`)
+              const _delete = readlineSync.question(WARN("Delete this note (yes)? "))
+              if (_delete === "yes") {
+                _NOTES.splice(input, 1)
+                console.log(OK("Sucessfully deleted note."))
+                reEncryptData()
+              } else {
+                console.log(OK("Delete aborted."))
+              }
+            }
+          } else {
+            console.log(WARN("Invalid argument."))
+          }
         } else {
           console.log(WARN("Invalid command."))
         }
@@ -936,13 +994,13 @@ async function main() {
  * [09] loadDatabase
  *      Loads the selected database into global:_DATABASE
  *      returns -> void
- * [10] loadPasswords
+ * [10] loadData
  *      Loads the passwords from global:_DATABASE to global:_PASSWORDS
  *      returns -> void
  * [11] reEncryptData
  *      Re-encrypts global:_DATABASE into database file
  *      returns -> void
- * [12] decryptPass
+ * [12] decryptData
  *      decrypts the passwords from global:_DATABASE
  *      returns -> Object > [ password, .. ]
  * [13] getDatabases
@@ -1015,20 +1073,12 @@ function generatePassword(wordy) {
   let password
 
   if (wordy) {
-    let seperator = _specialChars[crypt.random(_specialChars.length - 1)]
-    let len = _WORDS.length - 1,
-      front = "",
-      back = ""
-    if (crypt.random(1) === 0) front = crypt.random(999)
-    else back = crypt.random(999)
+    let len = _WORDS.length - 1
     password =
-      front +
       _WORDS[crypt.random(len)] +
-      seperator +
       _WORDS[crypt.random(len)] +
-      seperator +
       _WORDS[crypt.random(len)] +
-      back
+      _WORDS[crypt.random(len)]
   } else {
     do {
       password = ""
@@ -1107,30 +1157,38 @@ function loadDatabase() {
   }
 }
 
-function loadPasswords() {
-  _PASSWORDS = JSON.parse(decryptPass())
+function loadData() {
+  _PASSWORDS = JSON.parse(decryptData(_DATABASE.data.passwords))
+  _NOTES = JSON.parse(decryptData(_DATABASE.data.notes))
 }
 
 function reEncryptData() {
-  if (_DATABASE.settings.TwoFA.on)
-    _DATABASE.data = crypt.AES_encrypt(
+  if (_DATABASE.settings.TwoFA.on) {
+    _DATABASE.data.passwords = crypt.AES_encrypt(
       JSON.stringify(crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)),
       _2F
     )
-  else _DATABASE.data = crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)
+    _DATABASE.data.notes = crypt.AES_encrypt(
+      JSON.stringify(crypt.AES_encrypt(JSON.stringify(_NOTES), _KEY)),
+      _2F
+    )
+  } else {
+    _DATABASE.data.passwords = crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)
+    _DATABASE.data.notes = crypt.AES_encrypt(JSON.stringify(_NOTES), _KEY)
+  }
   fs.writeFileSync(
     __dirname + "/../databases/" + _NAME + ".json",
     JSON.stringify(_DATABASE)
   )
 }
 
-function decryptPass() {
+function decryptData(data) {
   if (_DATABASE.settings.TwoFA.on)
     return crypt.AES_decrypt(
-      JSON.parse(crypt.AES_decrypt(_DATABASE.data, _2F)),
+      JSON.parse(crypt.AES_decrypt(data, _2F)),
       _KEY
     )
-  return crypt.AES_decrypt(_DATABASE.data, _KEY)
+  return crypt.AES_decrypt(data, _KEY)
 }
 
 function getDatabases() {
@@ -1185,7 +1243,7 @@ function getAllFiles(dir) {
 }
 
 function LOGO() {
-  const logo = fs.readFileSync(__dirname + "/../krypt.logo").toString()
+  const logo = fs.readFileSync(__dirname + "/../logo").toString()
   console.log(OK(logo))
 }
 
