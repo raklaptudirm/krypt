@@ -17,7 +17,7 @@ const crypt = require("../lib/encrypt.js")
 const readlineSync = require("readline-sync")
 const chalk = require("chalk")
 const clipboardy = require("clipboardy")
-const style = require('ansi-styles')
+const style = require("ansi-styles")
 
 /*
  * Terminal text themes
@@ -239,6 +239,21 @@ const _DATA_TEMPLATE = {
       password: {
         format: "set password",
         use: "Toggles Wordy-Password",
+      },
+    },
+    notes: {
+      use: "Command package for creating, seeing and deleting notes.",
+      new: {
+        format: "notes new",
+        use: "Create a new note.",
+      },
+      get: {
+        use: "Get an existing note from the database.",
+        format: "notes get <note_no>",
+      },
+      delete: {
+        use: "Delete an existing note.",
+        format: "notes delete <note_no>",
       },
     },
   }
@@ -895,7 +910,7 @@ async function main() {
             )
             lines.pop()
             lines = lines.join("\n")
-            _NOTES.push({ name: name, info: lines , date: new Date()})
+            _NOTES.push({ name: name, info: lines, date: new Date() })
             console.log(OK("Added note."))
             reEncryptData()
           } else if (input[1] === "get") {
@@ -1310,22 +1325,26 @@ function getItem(ob, path) {
 
 function printNote(note, index) {
   let _FORMAT_OP = /<(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|magenta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magentaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMagenta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagentaBright|bgCyanBright|bgWhiteBright)>/,
-   _FORMAT_CL = /<\/(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|magenta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magentaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMagenta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagentaBright|bgCyanBright|bgWhiteBright)>/,
-   str = note.info
+    _FORMAT_CL = /<\/(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|magenta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magentaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMagenta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagentaBright|bgCyanBright|bgWhiteBright)>/,
+    str = note.info
 
-  while (_FORMAT_OP.exec(str)){
+  while (_FORMAT_OP.exec(str)) {
     let token = _FORMAT_OP.exec(str)[0]
     token = token.substring(1, token.length - 1)
     str = str.replace(_FORMAT_OP, style[token].open)
   }
 
-  while (_FORMAT_CL.exec(str)){
+  while (_FORMAT_CL.exec(str)) {
     let token = _FORMAT_CL.exec(str)[0]
     token = token.substring(2, token.length - 1)
     str = str.replace(_FORMAT_CL, style[token].close)
   }
 
-  console.log(`${chalk.bold(`[${index}] ${note.name}`)}\n${chalk.bold(note.date)}\n\n${"-".repeat(24)}\n\n${str}\n\n${"-".repeat(24)}`)
+  console.log(
+    `${chalk.bold(`[${index}] ${note.name}`)}\n${chalk.bold(
+      note.date
+    )}\n\n${"-".repeat(24)}\n\n${str}\n\n${"-".repeat(24)}`
+  )
 }
 
 /*
