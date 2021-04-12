@@ -17,6 +17,7 @@ const crypt = require("../lib/encrypt.js")
 const readlineSync = require("readline-sync")
 const chalk = require("chalk")
 const clipboardy = require("clipboardy")
+const style = require('ansi-styles')
 
 /*
  * Terminal text themes
@@ -477,11 +478,7 @@ async function main() {
               } else {
                 if (manual.format === undefined) {
                   console.log(OK(manual.use) + "\n")
-                  console.log(
-                    chalk.bold(
-                      `Child commands:`
-                    )
-                  )
+                  console.log(chalk.bold(`Child commands:`))
                   Object.keys(manual)
                     .filter(item => item !== "use")
                     .forEach(item => {
@@ -884,14 +881,21 @@ async function main() {
           if (input[1] === "new") {
             let name = readlineSync.question("Enter note name: ")
             let lines = []
-            console.log(`Enter your note. Enter to go to next line. Type END to end input: \n\n${"-".repeat(24)}\n`)
-            readlineSync.promptLoop(line => {
-              lines.push(line)
-              return line === "END"
-            }, {prompt: ''})
+            console.log(
+              `Enter your note. Enter to go to next line. Type END to end input: \n\n${"-".repeat(
+                24
+              )}\n`
+            )
+            readlineSync.promptLoop(
+              line => {
+                lines.push(line)
+                return line === "END"
+              },
+              { prompt: "" }
+            )
             lines.pop()
             lines = lines.join("\n")
-            _NOTES.push({name: name, info: lines})
+            _NOTES.push({ name: name, info: lines , date: new Date()})
             console.log(OK("Added note."))
             reEncryptData()
           } else if (input[1] === "get") {
@@ -904,7 +908,7 @@ async function main() {
             ) {
               console.log(WARN("ID out of bounds."))
             } else {
-              console.log(`\n${chalk.bold(`[${input + 1}] ${chalk.bold(_NOTES[input].name)}`)}\n\n${_NOTES[input].info}`)
+              printNote(_NOTES[input], input + 1)
             }
           } else if (input[1] === "delete") {
             input = parseInt(input[2]) - 1
@@ -916,8 +920,10 @@ async function main() {
             ) {
               console.log(WARN("ID out of bounds."))
             } else {
-              console.log(`\n${chalk.bold(`[${input + 1}] ${chalk.bold(_NOTES[input].name)}`)}\n\n${_NOTES[input].info}\n`)
-              const _delete = readlineSync.question(WARN("Delete this note (yes)? "))
+              printNote(_NOTES[input], input + 1)
+              const _delete = readlineSync.question(
+                WARN("Delete this note (yes)? ")
+              )
               if (_delete === "yes") {
                 _NOTES.splice(input, 1)
                 console.log(OK("Sucessfully deleted note."))
@@ -1181,7 +1187,10 @@ function reEncryptData() {
       _2F
     )
   } else {
-    _DATABASE.data.passwords = crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)
+    _DATABASE.data.passwords = crypt.AES_encrypt(
+      JSON.stringify(_PASSWORDS),
+      _KEY
+    )
     _DATABASE.data.notes = crypt.AES_encrypt(JSON.stringify(_NOTES), _KEY)
   }
   fs.writeFileSync(
@@ -1192,10 +1201,7 @@ function reEncryptData() {
 
 function decryptData(data) {
   if (_DATABASE.settings.TwoFA.on)
-    return crypt.AES_decrypt(
-      JSON.parse(crypt.AES_decrypt(data, _2F)),
-      _KEY
-    )
+    return crypt.AES_decrypt(JSON.parse(crypt.AES_decrypt(data, _2F)), _KEY)
   return crypt.AES_decrypt(data, _KEY)
 }
 
@@ -1301,6 +1307,27 @@ function getItem(ob, path) {
   }
   return ob
 }
+
+function printNote(note, index) {
+  let _FORMAT_OP = /<(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|magenta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magentaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMagenta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagentaBright|bgCyanBright|bgWhiteBright)>/,
+   _FORMAT_CL = /<\/(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|magenta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magentaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMagenta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagentaBright|bgCyanBright|bgWhiteBright)>/,
+   str = note.info
+
+  while (_FORMAT_OP.exec(str)){
+    let token = _FORMAT_OP.exec(str)[0]
+    token = token.substring(1, token.length - 1)
+    str = str.replace(_FORMAT_OP, style[token].open)
+  }
+
+  while (_FORMAT_CL.exec(str)){
+    let token = _FORMAT_CL.exec(str)[0]
+    token = token.substring(2, token.length - 1)
+    str = str.replace(_FORMAT_CL, style[token].close)
+  }
+
+  console.log(`${chalk.bold(`[${index}] ${note.name}`)}\n${chalk.bold(note.date)}\n\n${"-".repeat(24)}\n\n${str}\n\n${"-".repeat(24)}`)
+}
+
 /*
  * Main process
  *
