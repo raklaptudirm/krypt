@@ -1,28 +1,6 @@
-```
-KKKKKKKK      KKKKKKKK                                                                  TTTTTTTT
-K::::::K     K::::::K                                                                   T::::::T
-K::::::K    K::::::K                                                               TTTTTT::::::TTTTTT
-K::::::K   K::::::K                                                               T::::::::::::::::::T
-K::::::K  K::::::K                                                                T::::::::::::::::::T
-K::::::K K::::::K                                                                  TTTTTT::::::TTTTTT
-K::::::KK::::::K   RRRRRRRRRRRR         YYYYYYYY      YYYYYYYY PPPPPPPP  PPPPPPPPPP     T::::::T
-K:::::::::::::K    R::::::::::R RRRRRR  Y::::::Y      Y::::::Y P::::::P P::::::::::P    T::::::T
-K::::::KK::::::K   RRRRR::::::RR::::::R Y::::::Y      Y::::::Y P::::::PP::::::::::::P   T::::::T
-K::::::K K::::::K      R:::::::::RRR::R Y::::::Y      Y::::::Y P::::::::::::PPP::::::P  T::::::T
-K::::::K  K::::::K     R::::::RRR  RRRR Y::::::Y      Y::::::Y P::::::::::PP   PP:::::P T::::::T
-K::::::K   K::::::K    R::::::R         Y::::::Y      Y::::::Y P::::::::::PP   PP:::::P T::::::T
-K::::::K    K::::::K   R::::::R         Y:::::::Y    Y:::::::Y P::::::::::::PPP::::::P  T::::::T
-K::::::K     K::::::K  R::::::R          Y:::::::YYYY::::::::Y P::::::PP::::::::::::P   T::::::T
-KKKKKKKK      KKKKKKKK RRRRRRRR           Y::::::::::::::::::Y P::::::P P::::::::::P    TTTTTTTT
-                                           Y:::::::::::::::::Y P::::::P  PPPPPPPPPP
-                                            YYYYYYYYYYY::::::Y P::::::P
-                                                      Y::::::Y P::::::P
-                                         YYYYYY       Y::::::Y P::::::P
-                                        Y::::::YYYYYYYY::::::Y P::::::P
-                                        Y::::::::::::::::::::Y P::::::P
-                                         Y::::::::::::::::::Y  P::::::P
-                                          YYYYYYYYYYYYYYYYYY   PPPPPPPP
-```
+<p align="center">
+  <img src="https://github.com/raklaptudirm/Krypt/blob/main/imgs/logo.png" align="center" alt="Krypt">
+</p>
 
 # Krypt
 
