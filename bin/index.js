@@ -71,6 +71,7 @@ const _DATA_TEMPLATE = {
     "search",
     "copy",
     "archive",
+    "notes"
   ],
   _BASENAME = /[A-Za-z0-9-_.,]{1,100}/,
   _HELP = {
@@ -320,8 +321,14 @@ async function main() {
         input = input.split(" ")
 
         if (input[0] === "exit") {
-          if (input.length > 1) {
-            console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
+          if (input.length > 2) {
+            console.log(WARN(`Expected 0-1 arg(s), received ${input.length - 1}`))
+            continue
+          }
+          if (input[1] === "--no-clear")
+            break
+          else if (input.length > 1) {
+            console.log(WARN(`Invalid argument.`))
             continue
           }
           console.log("\u001b[2J")
@@ -421,8 +428,8 @@ async function main() {
           console.log(OK("Password deleted Successfully."))
           reEncryptData()
         } else if (input[0] === "secure") {
-          if (input.length > 1) {
-            console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
+          if (input.length > 2) {
+            console.log(WARN(`Expected 0-1 arg(s), received ${input.length - 1}`))
             continue
           }
           const [Sweaks, Pweaks, Duplicates] = await getWeaks()
@@ -1616,7 +1623,7 @@ async function mainProcess() {
       )
     } else if (args[0] === "make") {
       let wordy
-      if (args[1] === "wordy") wordy = true
+      if (args[1] === "--wordy") wordy = true
       else wordy = false
       const newPass = generatePassword(wordy)
       console.log(chalk.cyan.bold(newPass))
