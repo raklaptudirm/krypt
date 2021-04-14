@@ -13,7 +13,7 @@
 const zxcvbn = require("zxcvbn")
 const { pwnedPassword } = require("hibp")
 const fs = require("fs")
-const crypt = require("../lib/encrypt.js")
+const crypto = require("../lib/crypto.js")
 const readlineSync = require("readline-sync")
 const chalk = require("chalk")
 const clipboardy = require("clipboardy")
@@ -71,7 +71,7 @@ const _DATA_TEMPLATE = {
     "search",
     "copy",
     "archive",
-    "notes"
+    "notes",
   ],
   _BASENAME = /[A-Za-z0-9-_.,]{1,100}/,
   _HELP = {
@@ -106,8 +106,11 @@ const _DATA_TEMPLATE = {
         use: "Prints out the Krypt version in use.",
       },
       make: {
-        format: "krypt make ?wordy",
+        format: "krypt make",
         use: "Generate a strong password based on arguments.",
+        flags: {
+          wordy: "Generate a wordy password."
+        }
       },
       strength: {
         format: "krypt strength <password>",
@@ -133,6 +136,9 @@ const _DATA_TEMPLATE = {
     exit: {
       format: "exit",
       use: "Exit the Krypt session.",
+      flags: {
+        no_clear: "Do not clear the console while exiting."
+      }
     },
     gent: {
       format: "gent <entry_id>",
@@ -157,6 +163,10 @@ const _DATA_TEMPLATE = {
     make: {
       format: "make",
       use: "Generate a strong password based on settings.",
+      flags: {
+        wordy: "Generate a wordy password.",
+        no_wordy: "Generate a non-wordy password."
+      }
     },
     strength: {
       format: "strength <password>",
@@ -289,10 +299,10 @@ async function main() {
   if (fs.existsSync(__dirname + "/../databases/" + _NAME + ".json")) {
     if (!loadDatabase()) return
     _MAST = readlineSync.question("PASSWORD: ", { hideEchoBack: true })
-    _KEY = crypt.PBKDF2_HASH(_MAST, _DATABASE.salt.key)
+    _KEY = crypto.PBKDF2_HASH(_MAST, _DATABASE.salt.key)
 
     if (_DATABASE.settings.TwoFA.on)
-      _2F = crypt.PBKDF2_HASH(
+      _2F = crypto.PBKDF2_HASH(
         readlineSync.question(_DATABASE.settings.TwoFA.question + "? ", {
           hideEchoBack: true,
         }),
@@ -301,10 +311,10 @@ async function main() {
 
     if (
       _DATABASE.checksum.checksum ===
-        crypt.PBKDF2_HASH(_KEY, _DATABASE.checksum.salt) &&
+        crypto.PBKDF2_HASH(_KEY, _DATABASE.checksum.salt) &&
       (!_DATABASE.settings.TwoFA.on ||
         _DATABASE.settings.TwoFA.answer.checksum ===
-          crypt.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))
+          crypto.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))
     ) {
       console.log("\u001b[2J")
       console.log("")
@@ -322,11 +332,12 @@ async function main() {
 
         if (input[0] === "exit") {
           if (input.length > 2) {
-            console.log(WARN(`Expected 0-1 arg(s), received ${input.length - 1}`))
+            console.log(
+              WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
+            )
             continue
           }
-          if (input[1] === "--no-clear")
-            break
+          if (input[1] === "--no-clear") break
           else if (input.length > 1) {
             console.log(WARN(`Invalid argument.`))
             continue
@@ -338,12 +349,12 @@ async function main() {
             console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
             continue
           }
-          _KEY = crypt.PBKDF2_HASH(
+          _KEY = crypto.PBKDF2_HASH(
             readlineSync.questionNewPassword("Enter new Password: ", { min: 8 })
           )
           _DATABASE.salt.key = _KEY.salt
           _KEY = _KEY.checksum
-          _DATABASE.checksum = crypt.PBKDF2_HASH(_KEY)
+          _DATABASE.checksum = crypto.PBKDF2_HASH(_KEY)
           reEncryptData()
         } else if (input[0] === "new") {
           if (input.length > 1) {
@@ -417,9 +428,7 @@ async function main() {
             continue
           }
           printPass(_PASSWORDS[input], input)
-          const sel = readlineSync.question(
-            WARN("Delete this entry? (yes): ")
-          )
+          const sel = readlineSync.question(WARN("Delete this entry? (yes): "))
           if (sel !== "yes") {
             console.log(OK("Delete aborted."))
             continue
@@ -429,7 +438,9 @@ async function main() {
           reEncryptData()
         } else if (input[0] === "secure") {
           if (input.length > 2) {
-            console.log(WARN(`Expected 0-1 arg(s), received ${input.length - 1}`))
+            console.log(
+              WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
+            )
             continue
           }
           const [Sweaks, Pweaks, Duplicates] = await getWeaks()
@@ -512,20 +523,33 @@ async function main() {
             console.log(WARN("Invalid argument."))
           }
         } else if (input[0] === "make") {
-          if (input.length > 1) {
-            console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
+          if (input.length > 2) {
+            console.log(WARN(`Expected 0-1 arg(s), received ${input.length - 1}`))
             continue
           }
-          const newPass = generatePassword(_DATABASE.settings.passwordWordy)
+          let type
+          if (input[1] === undefined)
+            type = _DATABASE.settings.passwordWordy
+          else if (input[1] === "--wordy")
+            type = true
+          else if (input[1] === "--no-wordy")
+            type = false
+          else {
+            console.log(WARN("Invalid argument."))
+            continue
+          }
+          const newPass = generatePassword(type)
           console.log(chalk.cyan.bold(newPass))
           console.log(passStrength(newPass).score + (await timesPwned(newPass)))
         } else if (input[0] === "help") {
           if (input.length < 2) {
-            console.log(WARN(`Expected multiple arg(s), received ${input.length - 1}`))
+            console.log(
+              WARN(`Expected multiple arg(s), received ${input.length - 1}`)
+            )
             continue
           }
           input.splice(0, 1)
-          if (input.includes("use") || input.includes("format")) {
+          if (input.includes("use") || input.includes("format") || input.includes("flags")) {
             console.log(WARN("Command not found."))
             continue
           }
@@ -543,7 +567,21 @@ async function main() {
                 console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
               })
           } else {
-            console.log(`${CODE(manual.format)}\n${OK(manual.use)}`)
+            console.log(`${CODE(manual.format)}\n${OK(manual.use)}\n`)
+            Object.keys(manual)
+              .filter(item =>  item !== "use" && item !== "format" && item !== "flags")
+              .forEach(item => {
+                console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
+              })
+            if (manual.flags !== undefined) {
+              console.log(chalk.bold(`Flags:`))
+              Object.keys(manual.flags)
+                .forEach(item => {
+                  while (item.includes("_"))
+                    item = item.replace("_", "-")
+                  console.log(`  --${chalk.bold(item)}: ${manual.flags[item]}`)
+                })
+            }
           }
         } else if (input[0] === "edit") {
           if (input.length !== 2) {
@@ -604,13 +642,17 @@ async function main() {
           if (notFound) console.log(WARN("No matches found."))
         } else if (input[0] === "set") {
           if (input.length < 2) {
-            console.log(WARN(`Expected multiple arg(s), received ${input.length - 1}`))
+            console.log(
+              WARN(`Expected multiple arg(s), received ${input.length - 1}`)
+            )
             continue
           }
           if (input[1] === "tfa") {
             if (!_DATABASE.settings.TwoFA.on) {
               if (input.length > 1) {
-                console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
+                console.log(
+                  WARN(`Expected 0 arg(s), received ${input.length - 1}`)
+                )
                 continue
               }
               const sel = readlineSync.question(
@@ -621,12 +663,12 @@ async function main() {
                 _DATABASE.settings.TwoFA.question = readlineSync.question(
                   "Enter a question: "
                 )
-                _2F = crypt.PBKDF2_HASH(
+                _2F = crypto.PBKDF2_HASH(
                   readlineSync.question("Enter the answer: ")
                 )
                 _DATABASE.salt.TwoFA = _2F.salt
                 _2F = _2F.checksum
-                _DATABASE.settings.TwoFA.answer = crypt.PBKDF2_HASH(_2F)
+                _DATABASE.settings.TwoFA.answer = crypto.PBKDF2_HASH(_2F)
                 console.log(OK("Enabled 2 factor Auth."))
                 reEncryptData()
               } else {
@@ -635,7 +677,9 @@ async function main() {
             } else {
               if (input[2] === "dis") {
                 if (input.length > 3) {
-                  console.log(WARN(`Expected 0 arg(s), received ${input.length - 3}`))
+                  console.log(
+                    WARN(`Expected 0 arg(s), received ${input.length - 3}`)
+                  )
                   continue
                 }
                 const sel = readlineSync.question(
@@ -650,19 +694,21 @@ async function main() {
                 }
               } else {
                 if (input.length > 2) {
-                  console.log(WARN(`Expected 0 arg(s), received ${input.length - 2}`))
+                  console.log(
+                    WARN(`Expected 0 arg(s), received ${input.length - 2}`)
+                  )
                   continue
                 }
                 _DATABASE.settings.TwoFA.question =
                   readlineSync.question(
                     "Enter new question (Keep empty to keep the same): "
                   ) || _DATABASE.settings.TwoFA.question
-                _2F = crypt.PBKDF2_HASH(
+                _2F = crypto.PBKDF2_HASH(
                   readlineSync.question("Enter new answer: ")
                 )
                 _DATABASE.salt.TwoFA = _2F.salt
                 _2F = _2F.checksum
-                _DATABASE.settings.TwoFA.answer = crypt.PBKDF2_HASH(_2F)
+                _DATABASE.settings.TwoFA.answer = crypto.PBKDF2_HASH(_2F)
                 console.log(OK("Changed Auth factors."))
                 reEncryptData()
               }
@@ -670,7 +716,9 @@ async function main() {
           } else if (input[1] === "hint") {
             if (!_DATABASE.settings.hint.on) {
               if (input.length > 2) {
-                console.log(WARN(`Expected 0 arg(s), received ${input.length - 2}`))
+                console.log(
+                  WARN(`Expected 0 arg(s), received ${input.length - 2}`)
+                )
                 continue
               }
               const sel = readlineSync.question(OK("Enable Hint? (yes): "))
@@ -687,7 +735,9 @@ async function main() {
             } else {
               if (input[2] === "dis") {
                 if (input.length > 3) {
-                  console.log(WARN(`Expected 0 arg(s), received ${input.length - 3}`))
+                  console.log(
+                    WARN(`Expected 0 arg(s), received ${input.length - 3}`)
+                  )
                   continue
                 }
                 const sel = readlineSync.question(WARN("Disable Hint? (yes): "))
@@ -700,7 +750,9 @@ async function main() {
                 }
               } else {
                 if (input.length > 2) {
-                  console.log(WARN(`Expected 0 arg(s), received ${input.length - 2}`))
+                  console.log(
+                    WARN(`Expected 0 arg(s), received ${input.length - 2}`)
+                  )
                   continue
                 }
                 _DATABASE.settings.hint.hint =
@@ -713,12 +765,16 @@ async function main() {
             }
           } else if (input[1] === "alias") {
             if (input.length < 3) {
-              console.log(WARN(`Expected multiple arg(s), received ${input.length - 2}`))
+              console.log(
+                WARN(`Expected multiple arg(s), received ${input.length - 2}`)
+              )
               continue
             }
             if (input[2] === "new") {
               if (input.length > 3) {
-                console.log(WARN(`Expected 0 arg(s), received ${input.length - 3}`))
+                console.log(
+                  WARN(`Expected 0 arg(s), received ${input.length - 3}`)
+                )
                 continue
               }
               const alias = readlineSync.question("Enter alias name: ")
@@ -740,7 +796,9 @@ async function main() {
               }
             } else if (input[2] === "rename") {
               if (input.length !== 4) {
-                console.log(WARN(`Expected 1 arg(s), received ${input.length - 3}`))
+                console.log(
+                  WARN(`Expected 1 arg(s), received ${input.length - 3}`)
+                )
                 continue
               }
               if (_DATABASE.settings.alias[input[3]] === undefined) {
@@ -759,7 +817,9 @@ async function main() {
               }
             } else if (input[2] === "delete") {
               if (input.length !== 4) {
-                console.log(WARN(`Expected 1 arg(s), received ${input.length - 3}`))
+                console.log(
+                  WARN(`Expected 1 arg(s), received ${input.length - 3}`)
+                )
                 continue
               }
               if (_DATABASE.settings.alias[input[3]] === undefined) {
@@ -771,7 +831,9 @@ async function main() {
               }
             } else if (input[2] === "list") {
               if (input.length > 3) {
-                console.log(WARN(`Expected 0 arg(s), received ${input.length - 3}`))
+                console.log(
+                  WARN(`Expected 0 arg(s), received ${input.length - 3}`)
+                )
                 continue
               }
               console.log("")
@@ -789,7 +851,9 @@ async function main() {
             }
           } else if (input[1] === "password") {
             if (input.length > 2) {
-              console.log(WARN(`Expected 0 arg(s), received ${input.length - 2}`))
+              console.log(
+                WARN(`Expected 0 arg(s), received ${input.length - 2}`)
+              )
               continue
             }
             _DATABASE.settings.passwordWordy = !_DATABASE.settings.passwordWordy
@@ -855,7 +919,9 @@ async function main() {
 
           if (input[1] === "new") {
             if (input.length < 2) {
-              console.log(WARN(`Expected multiple arg(s), received ${input.length - 1}`))
+              console.log(
+                WARN(`Expected multiple arg(s), received ${input.length - 1}`)
+              )
               continue
             }
             if (input[2] === "file") {
@@ -1010,12 +1076,16 @@ async function main() {
           }
         } else if (input[0] === "notes") {
           if (input.length < 2) {
-            console.log(WARN(`Expected multiple arg(s), received ${input.length - 1}`))
+            console.log(
+              WARN(`Expected multiple arg(s), received ${input.length - 1}`)
+            )
             continue
           }
           if (input[1] === "new") {
             if (input.length > 2) {
-              console.log(WARN(`Expected 0 arg(s), received ${input.length - 2}`))
+              console.log(
+                WARN(`Expected 0 arg(s), received ${input.length - 2}`)
+              )
               continue
             }
             let name = readlineSync.question("Enter note name: ")
@@ -1039,7 +1109,9 @@ async function main() {
             reEncryptData()
           } else if (input[1] === "get") {
             if (input.length !== 3) {
-              console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
+              console.log(
+                WARN(`Expected 1 arg(s), received ${input.length - 1}`)
+              )
               continue
             }
             input = parseInt(input[2]) - 1
@@ -1055,7 +1127,9 @@ async function main() {
             }
           } else if (input[1] === "delete") {
             if (input.length !== 3) {
-              console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
+              console.log(
+                WARN(`Expected 1 arg(s), received ${input.length - 1}`)
+              )
               continue
             }
             input = parseInt(input[2]) - 1
@@ -1101,12 +1175,12 @@ async function main() {
     _DATABASE = _DATA_TEMPLATE
     _PASSWORDS = []
     _NOTES = []
-    _KEY = crypt.PBKDF2_HASH(
+    _KEY = crypto.PBKDF2_HASH(
       readlineSync.questionNewPassword("New Password: ", { min: 8 })
     )
     _DATABASE.salt.key = _KEY.salt
     _KEY = _KEY.checksum
-    _DATABASE.checksum = crypt.PBKDF2_HASH(_KEY)
+    _DATABASE.checksum = crypto.PBKDF2_HASH(_KEY)
     console.log("\n" + OK("Database initialized."))
     reEncryptData()
   }
@@ -1238,29 +1312,29 @@ function generatePassword(wordy) {
   if (wordy) {
     let len = _WORDS.length - 1
     password =
-      _WORDS[crypt.random(len)] +
-      _WORDS[crypt.random(len)] +
-      _WORDS[crypt.random(len)] +
-      _WORDS[crypt.random(len)]
+      _WORDS[crypto.random(len)] +
+      _WORDS[crypto.random(len)] +
+      _WORDS[crypto.random(len)] +
+      _WORDS[crypto.random(len)]
   } else {
     do {
       password = ""
       const length = 12
 
       for (let i = 0; i < length; i++) {
-        let type = crypt.random(3)
+        let type = crypto.random(3)
         switch (type) {
           case 0:
-            password += _lowerCase[crypt.random(25)]
+            password += _lowerCase[crypto.random(25)]
             break
           case 1:
-            password += _upperCase[crypt.random(25)]
+            password += _upperCase[crypto.random(25)]
             break
           case 2:
-            password += _numbers[crypt.random(9)]
+            password += _numbers[crypto.random(9)]
             break
           case 3:
-            password += _specialChars[crypt.random(_specialChars.length - 1)]
+            password += _specialChars[crypto.random(_specialChars.length - 1)]
         }
       }
     } while (passStrength(password).score !== OK("[VERY STRONG]"))
@@ -1327,20 +1401,20 @@ function loadData() {
 
 function reEncryptData() {
   if (_DATABASE.settings.TwoFA.on) {
-    _DATABASE.data.passwords = crypt.AES_encrypt(
-      JSON.stringify(crypt.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)),
+    _DATABASE.data.passwords = crypto.AES_encrypt(
+      JSON.stringify(crypto.AES_encrypt(JSON.stringify(_PASSWORDS), _KEY)),
       _2F
     )
-    _DATABASE.data.notes = crypt.AES_encrypt(
-      JSON.stringify(crypt.AES_encrypt(JSON.stringify(_NOTES), _KEY)),
+    _DATABASE.data.notes = crypto.AES_encrypt(
+      JSON.stringify(crypto.AES_encrypt(JSON.stringify(_NOTES), _KEY)),
       _2F
     )
   } else {
-    _DATABASE.data.passwords = crypt.AES_encrypt(
+    _DATABASE.data.passwords = crypto.AES_encrypt(
       JSON.stringify(_PASSWORDS),
       _KEY
     )
-    _DATABASE.data.notes = crypt.AES_encrypt(JSON.stringify(_NOTES), _KEY)
+    _DATABASE.data.notes = crypto.AES_encrypt(JSON.stringify(_NOTES), _KEY)
   }
   fs.writeFileSync(
     __dirname + "/../databases/" + _NAME + ".json",
@@ -1350,8 +1424,8 @@ function reEncryptData() {
 
 function decryptData(data) {
   if (_DATABASE.settings.TwoFA.on)
-    return crypt.AES_decrypt(JSON.parse(crypt.AES_decrypt(data, _2F)), _KEY)
-  return crypt.AES_decrypt(data, _KEY)
+    return crypto.AES_decrypt(JSON.parse(crypto.AES_decrypt(data, _2F)), _KEY)
+  return crypto.AES_decrypt(data, _KEY)
 }
 
 function getDatabases() {
@@ -1376,14 +1450,14 @@ const is = (string, regexp) => {
 
 function binEncryptFile(file) {
   if (_DATABASE.settings.TwoFA.on)
-    return crypt.Bin_AES_encrypt(crypt.Bin_AES_encrypt(file, _KEY), _2F)
-  return crypt.Bin_AES_encrypt(file, _KEY)
+    return crypto.Bin_AES_encrypt(crypto.Bin_AES_encrypt(file, _KEY), _2F)
+  return crypto.Bin_AES_encrypt(file, _KEY)
 }
 
 function binDecryptFile(ciphertext) {
   if (_DATABASE.settings.TwoFA.on)
-    return crypt.Bin_AES_decrypt(crypt.Bin_AES_decrypt(ciphertext, _2F), _KEY)
-  return crypt.Bin_AES_decrypt(ciphertext, _KEY)
+    return crypto.Bin_AES_decrypt(crypto.Bin_AES_decrypt(ciphertext, _2F), _KEY)
+  return crypto.Bin_AES_decrypt(ciphertext, _KEY)
 }
 
 function updateTree() {
@@ -1573,8 +1647,8 @@ async function mainProcess() {
     } else if (args[0] === "rename") {
       let config = getDatabases()
       if (config.databases.includes(args[1])) {
-        const newDBName = readlineShync.question("Enter new name: ")
-        if (is(newName, _BASENAME) && newDBName.length !== 0) {
+        const newDBName = readlineSync.question("Enter new name: ")
+        if (is(newDBName, _BASENAME) && newDBName.length !== 0) {
           if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
             fs.renameSync(
               __dirname + `/../databases/${args[1]}.json`,
