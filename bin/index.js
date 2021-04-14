@@ -1373,7 +1373,7 @@ function printPass(password, id) {
       chalk.yellow.bold(password.username) +
       "\n" +
       "Password: " +
-      chalk.yellow.bold(new Array(password.password.length + 1).join("*"))
+      chalk.yellow.bold("*".repeat(password.password.length + 1))
   )
 }
 
