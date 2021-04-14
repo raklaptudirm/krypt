@@ -116,6 +116,10 @@ const _DATA_TEMPLATE = {
         format: "krypt strength <password>",
         use: "Gives the strength of the given password.",
       },
+      current:  {
+        format: "krypt current",
+        use: "Prints the active database.",
+      },
     },
     gpass: {
       format: "gpass <pass_id>",
