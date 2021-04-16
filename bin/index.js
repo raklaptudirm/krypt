@@ -109,7 +109,10 @@ const _DATA_TEMPLATE = {
         format: "krypt make",
         use: "Generate a strong password based on arguments.",
         flags: {
-          wordy: "Generate a wordy password.",
+          wordy: {
+            use: "Generate a wordy password.",
+            alias: "-w",
+          },
         },
       },
       strength: {
@@ -141,7 +144,10 @@ const _DATA_TEMPLATE = {
       format: "exit",
       use: "Exit the Krypt session.",
       flags: {
-        no_clear: "Do not clear the console while exiting.",
+        no_clear: {
+          use: "Do not clear the console while exiting.",
+          alias: "-ncl",
+        }
       },
     },
     gent: {
@@ -168,8 +174,14 @@ const _DATA_TEMPLATE = {
       format: "make",
       use: "Generate a strong password based on settings.",
       flags: {
-        wordy: "Generate a wordy password.",
-        no_wordy: "Generate a non-wordy password.",
+        wordy: {
+          use: "Generate a wordy password.",
+          alias: "-w",
+        },
+        no_wordy: {
+          use: "Generate a non-wordy password.",
+          alias: "-nw",
+        },
       },
     },
     strength: {
@@ -341,7 +353,7 @@ async function main() {
             )
             continue
           }
-          if (input[1] === "--no-clear") break
+          if (input[1] === "--no-clear" || input[1] === "-ncl") break
           else if (input.length > 1) {
             console.log(WARN(`Invalid argument.`))
             continue
@@ -535,8 +547,8 @@ async function main() {
           }
           let type
           if (input[1] === undefined) type = _DATABASE.settings.passwordWordy
-          else if (input[1] === "--wordy") type = true
-          else if (input[1] === "--no-wordy") type = false
+          else if (input[1] === "--wordy" || input[1] === "-w") type = true
+          else if (input[1] === "--no-wordy" || input[1] === "-nw") type = false
           else {
             console.log(WARN("Invalid argument."))
             continue
@@ -585,8 +597,9 @@ async function main() {
             if (manual.flags !== undefined) {
               console.log(chalk.bold(`Flags:`))
               Object.keys(manual.flags).forEach(item => {
+                let id = item
                 while (item.includes("_")) item = item.replace("_", "-")
-                console.log(`  --${chalk.bold(item)}: ${manual.flags[item]}`)
+                console.log(`  --${chalk.bold(item)} (${manual.flags[id].alias}): ${manual.flags[id].use}`)
               })
             }
           }
@@ -1746,7 +1759,7 @@ function printNote(note, index) {
         return
       }
       let wordy
-      if (args[1] === "--wordy") wordy = true
+      if (args[1] === "--wordy" || args[1] === "-w") wordy = true
       else wordy = false
       const newPass = generatePassword(wordy)
       console.log(chalk.cyan.bold(newPass))
