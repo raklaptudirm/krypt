@@ -1,3 +1,7 @@
+# v4.0.1:
+
+- Add flag aliases.
+
 # v4.0.0
 
 - Fixed (#2).
