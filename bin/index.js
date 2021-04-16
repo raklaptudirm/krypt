@@ -147,7 +147,7 @@ const _DATA_TEMPLATE = {
         no_clear: {
           use: "Do not clear the console while exiting.",
           alias: "-ncl",
-        }
+        },
       },
     },
     gent: {
@@ -599,7 +599,11 @@ async function main() {
               Object.keys(manual.flags).forEach(item => {
                 let id = item
                 while (item.includes("_")) item = item.replace("_", "-")
-                console.log(`  --${chalk.bold(item)} (${manual.flags[id].alias}): ${manual.flags[id].use}`)
+                console.log(
+                  `  --${chalk.bold(item)} (${manual.flags[id].alias}): ${
+                    manual.flags[id].use
+                  }`
+                )
               })
             }
           }
