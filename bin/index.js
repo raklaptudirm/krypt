@@ -109,14 +109,14 @@ const _DATA_TEMPLATE = {
         format: "krypt make",
         use: "Generate a strong password based on arguments.",
         flags: {
-          wordy: "Generate a wordy password."
-        }
+          wordy: "Generate a wordy password.",
+        },
       },
       strength: {
         format: "krypt strength <password>",
         use: "Gives the strength of the given password.",
       },
-      current:  {
+      current: {
         format: "krypt current",
         use: "Prints the active database.",
       },
@@ -141,8 +141,8 @@ const _DATA_TEMPLATE = {
       format: "exit",
       use: "Exit the Krypt session.",
       flags: {
-        no_clear: "Do not clear the console while exiting."
-      }
+        no_clear: "Do not clear the console while exiting.",
+      },
     },
     gent: {
       format: "gent <entry_id>",
@@ -169,8 +169,8 @@ const _DATA_TEMPLATE = {
       use: "Generate a strong password based on settings.",
       flags: {
         wordy: "Generate a wordy password.",
-        no_wordy: "Generate a non-wordy password."
-      }
+        no_wordy: "Generate a non-wordy password.",
+      },
     },
     strength: {
       format: "strength <password>",
@@ -528,16 +528,15 @@ async function main() {
           }
         } else if (input[0] === "make") {
           if (input.length > 2) {
-            console.log(WARN(`Expected 0-1 arg(s), received ${input.length - 1}`))
+            console.log(
+              WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
+            )
             continue
           }
           let type
-          if (input[1] === undefined)
-            type = _DATABASE.settings.passwordWordy
-          else if (input[1] === "--wordy")
-            type = true
-          else if (input[1] === "--no-wordy")
-            type = false
+          if (input[1] === undefined) type = _DATABASE.settings.passwordWordy
+          else if (input[1] === "--wordy") type = true
+          else if (input[1] === "--no-wordy") type = false
           else {
             console.log(WARN("Invalid argument."))
             continue
@@ -553,7 +552,11 @@ async function main() {
             continue
           }
           input.splice(0, 1)
-          if (input.includes("use") || input.includes("format") || input.includes("flags")) {
+          if (
+            input.includes("use") ||
+            input.includes("format") ||
+            input.includes("flags")
+          ) {
             console.log(WARN("Command not found."))
             continue
           }
@@ -573,18 +576,18 @@ async function main() {
           } else {
             console.log(`${CODE(manual.format)}\n${OK(manual.use)}\n`)
             Object.keys(manual)
-              .filter(item =>  item !== "use" && item !== "format" && item !== "flags")
+              .filter(
+                item => item !== "use" && item !== "format" && item !== "flags"
+              )
               .forEach(item => {
                 console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
               })
             if (manual.flags !== undefined) {
               console.log(chalk.bold(`Flags:`))
-              Object.keys(manual.flags)
-                .forEach(item => {
-                  while (item.includes("_"))
-                    item = item.replace("_", "-")
-                  console.log(`  --${chalk.bold(item)}: ${manual.flags[item]}`)
-                })
+              Object.keys(manual.flags).forEach(item => {
+                while (item.includes("_")) item = item.replace("_", "-")
+                console.log(`  --${chalk.bold(item)}: ${manual.flags[item]}`)
+              })
             }
           }
         } else if (input[0] === "edit") {
@@ -1569,7 +1572,7 @@ function printNote(note, index) {
  * if no arguments are found.
  */
 
-async function mainProcess() {
+;(async function () {
   _WORDS = JSON.parse(fs.readFileSync(__dirname + "/../lib/dictionary.json"))
   if (process.argv.length === 2) {
     if (!fs.existsSync(__dirname + "/../config.json"))
@@ -1588,9 +1591,7 @@ async function mainProcess() {
     let args = process.argv.slice(2)
     if (args[0] === "new") {
       if (args.length > 1) {
-        console.log(
-          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
         return
       }
       let config = getDatabases()
@@ -1615,9 +1616,7 @@ async function mainProcess() {
       }
     } else if (args[0] === "list") {
       if (args.length > 1) {
-        console.log(
-          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
         return
       }
       let config = getDatabases()
@@ -1626,9 +1625,7 @@ async function mainProcess() {
       }
     } else if (args[0] === "switch") {
       if (args.length !== 2) {
-        console.log(
-          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
         return
       }
       let config = getDatabases()
@@ -1641,9 +1638,7 @@ async function mainProcess() {
       }
     } else if (args[0] === "delete") {
       if (args.length !== 2) {
-        console.log(
-          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
         return
       }
       let config = getDatabases()
@@ -1676,9 +1671,7 @@ async function mainProcess() {
       }
     } else if (args[0] === "rename") {
       if (args.length !== 2) {
-        console.log(
-          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
         return
       }
       let config = getDatabases()
@@ -1708,17 +1701,13 @@ async function mainProcess() {
       }
     } else if (args[0] === "current") {
       if (args.length > 1) {
-        console.log(
-          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
         return
       }
       console.log(chalk.blue.bold(getDatabases().selected))
     } else if (args[0] === "version") {
       if (args.length > 1) {
-        console.log(
-          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
         return
       }
       const data = fs.readFileSync(__dirname + "/../package.json")
@@ -1732,9 +1721,7 @@ async function mainProcess() {
       }
     } else if (args[0] === "license") {
       if (args.length > 1) {
-        console.log(
-          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
         return
       }
       console.log(
@@ -1751,9 +1738,7 @@ async function mainProcess() {
       )
     } else if (args[0] === "make") {
       if (args.length > 2) {
-        console.log(
-          WARN(`Expected 0-1 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 0-1 arg(s), received ${args.length - 1}`))
         return
       }
       let wordy
@@ -1764,9 +1749,7 @@ async function mainProcess() {
       console.log(passStrength(newPass).score + (await timesPwned(newPass)))
     } else if (args[0] === "strength") {
       if (args.length !== 2) {
-        console.log(
-          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
-        )
+        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
         return
       }
       if (args[1]) {
@@ -1789,6 +1772,4 @@ async function mainProcess() {
       console.log(WARN("Invalid argument."))
     }
   }
-}
-
-mainProcess()
+})()
