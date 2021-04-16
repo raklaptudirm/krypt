@@ -1196,7 +1196,7 @@ async function main() {
         console.log(OK(`Hint: ${_DATABASE.settings.hint.hint}`))
     }
   } else {
-    if (!fs.existsSync(__dirname + "/databases"))
+    if (!fs.existsSync(__dirname + "/../databases"))
       fs.mkdirSync(__dirname + "/../databases")
     _DATABASE = _DATA_TEMPLATE
     _PASSWORDS = []
