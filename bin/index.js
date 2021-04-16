@@ -1287,6 +1287,10 @@ async function main() {
  *        path -> string
  *      Gives the information at arg:path in arg:ob
  *      returns -> Any
+ * [23] printNote
+ *        note -> Object > note
+ *        index -> Number
+ *      Prints out the arg:note with formatting.
  */
 
 function isNotCommand(name) {
