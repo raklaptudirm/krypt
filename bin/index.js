@@ -1585,6 +1585,12 @@ async function mainProcess() {
   } else {
     let args = process.argv.slice(2)
     if (args[0] === "new") {
+      if (args.length > 1) {
+        console.log(
+          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       let config = getDatabases()
       const newName = readlineSync.question("Enter database name: ")
       if (is(newName, _BASENAME) && newName.length !== 0) {
@@ -1606,11 +1612,23 @@ async function mainProcess() {
         )
       }
     } else if (args[0] === "list") {
+      if (args.length > 1) {
+        console.log(
+          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       let config = getDatabases()
       for (const databaseName of config.databases) {
         console.log(chalk.blue.bold(databaseName))
       }
     } else if (args[0] === "switch") {
+      if (args.length !== 2) {
+        console.log(
+          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       let config = getDatabases()
       if (config.databases.includes(args[1])) {
         config.selected = args[1]
@@ -1620,6 +1638,12 @@ async function mainProcess() {
         console.log(WARN("Database not found."))
       }
     } else if (args[0] === "delete") {
+      if (args.length !== 2) {
+        console.log(
+          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       let config = getDatabases()
       if (config.databases.includes(args[1])) {
         if (config.databases.length === 1) {
@@ -1649,6 +1673,12 @@ async function mainProcess() {
         console.log(WARN("Database not found."))
       }
     } else if (args[0] === "rename") {
+      if (args.length !== 2) {
+        console.log(
+          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       let config = getDatabases()
       if (config.databases.includes(args[1])) {
         const newDBName = readlineSync.question("Enter new name: ")
@@ -1675,8 +1705,20 @@ async function mainProcess() {
         console.log(WARN("Database not found."))
       }
     } else if (args[0] === "current") {
+      if (args.length > 1) {
+        console.log(
+          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       console.log(chalk.blue.bold(getDatabases().selected))
     } else if (args[0] === "version") {
+      if (args.length > 1) {
+        console.log(
+          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       const data = fs.readFileSync(__dirname + "/../package.json")
       try {
         console.log("v" + (JSON.parse(data).version || "0.0.0"))
@@ -1687,6 +1729,12 @@ async function mainProcess() {
         )
       }
     } else if (args[0] === "license") {
+      if (args.length > 1) {
+        console.log(
+          WARN(`Expected 0 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       console.log(
         `\n${chalk.bold("Permissions:")}\n${OK(
           "* Commercial use\n* Distribution\n* Modification\n* Private use"
@@ -1700,6 +1748,12 @@ async function mainProcess() {
         chalk.whiteBright(fs.readFileSync(`${__dirname}/../LICENSE`).toString())
       )
     } else if (args[0] === "make") {
+      if (args.length > 2) {
+        console.log(
+          WARN(`Expected 0-1 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       let wordy
       if (args[1] === "--wordy") wordy = true
       else wordy = false
@@ -1707,6 +1761,12 @@ async function mainProcess() {
       console.log(chalk.cyan.bold(newPass))
       console.log(passStrength(newPass).score + (await timesPwned(newPass)))
     } else if (args[0] === "strength") {
+      if (args.length !== 2) {
+        console.log(
+          WARN(`Expected 1 arg(s), received ${args.length - 1}`)
+        )
+        return
+      }
       if (args[1]) {
         const pStrength = passStrength(args[1])
         console.log(

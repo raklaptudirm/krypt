@@ -1,9 +1,11 @@
-# v3.3.5
+# v4.0.0
 
+- Fixed (#2).
+- Added notes.
+- Added Flags.
+- Added flags support to help command.
+- Number of arguments check.
 - On log-in, password input gets hidden.
-
-# v3.3.4
-
 - New Krypt Logo
 
 # v3.3.3
