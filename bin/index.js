@@ -1197,7 +1197,7 @@ async function main() {
     }
   } else {
     if (!fs.existsSync(__dirname + "/databases"))
-      fs.mkdirSync(__dirname + "/databases")
+      fs.mkdirSync(__dirname + "/../databases")
     _DATABASE = _DATA_TEMPLATE
     _PASSWORDS = []
     _NOTES = []

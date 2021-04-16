@@ -1,3 +1,7 @@
+# v4.0.2:
+
+- Fixed initaialization error.
+
 # v4.0.1:
 
 - Add flag aliases.
