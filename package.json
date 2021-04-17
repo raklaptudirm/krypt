@@ -4,7 +4,7 @@
   "description": "A secure password manager",
   "main": "bin/test.js",
   "scripts": {
-    "test": "krypt"
+    "test": "krypt make"
   },
   "author": "Rak Laptudirm",
   "license": "MIT",
@@ -15,12 +15,12 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "repository": {
-    "url": "git+ssh://git@github.com/raklaptudirm/Quote.git"
+    "url": "git+ssh://git@github.com/raklaptudirm/Krypt.git"
   },
   "bugs": {
-    "url": "https://github.com/raklaptudirm/Quote/issues"
+    "url": "https://github.com/raklaptudirm/Krypt/issues"
   },
-  "homepage": "https://github.com/raklaptudirm/Quote#readme",
+  "homepage": "https://github.com/raklaptudirm/Krypt#readme",
   "directories": {
     "lib": "lib"
   },
