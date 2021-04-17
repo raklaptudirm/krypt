@@ -4,7 +4,7 @@
   "description": "A secure password manager",
   "main": "bin/test.js",
   "scripts": {
-    "test": "krypt make"
+    "test": "sh test/test.sh"
   },
   "author": "Rak Laptudirm",
   "license": "MIT",
