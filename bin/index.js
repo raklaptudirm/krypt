@@ -389,21 +389,26 @@ async function main() {
           )
           reEncryptData()
         } else if (input[0] === "gent") {
-          if (input.length !== 2) {
-            console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
+          if (input.length < 2) {
+            console.log(
+              WARN(`Expected at least 1 arg(s), received ${input.length - 1}`)
+            )
             continue
           }
-          input = parseInt(input[1]) - 1
-          if (
-            input === undefined ||
-            Number.isNaN(input) ||
-            input < 0 ||
-            input >= _PASSWORDS.length
-          ) {
-            console.log(WARN("ID out of bounds."))
+          input = input.slice(1)
+          let print
+          try {
+            print = await filterPass(input)
+          } catch (e) {
+            console.log(e.message)
             continue
           }
-          printPass(_PASSWORDS[input], input + 1)
+          console.log(print)
+          if (print.length === 0)
+            console.log(WARN("No passwords match the criteria."))
+          else {
+            for (const i of print) printPass(_PASSWORDS[i], i + 1)
+          }
         } else if (input[0] === "gpass") {
           if (input.length !== 2) {
             console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
@@ -581,14 +586,14 @@ async function main() {
             console.log(OK(manual.use) + "\n")
             console.log(chalk.bold(`Child commands:`))
             Object.keys(manual)
-              .filter(item => item !== "use")
+              .filters(item => item !== "use")
               .forEach(item => {
                 console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
               })
           } else {
             console.log(`${CODE(manual.format)}\n${OK(manual.use)}\n`)
             Object.keys(manual)
-              .filter(
+              .filters(
                 item => item !== "use" && item !== "format" && item !== "flags"
               )
               .forEach(item => {
@@ -1586,48 +1591,86 @@ function printNote(note, index) {
 }
 
 /*
-* Filters:
-* --name (-n): String
-* --username (-u): String
-* --leaked (-l): void
-* --strength (-s): 0/very-weak | 1/weak | 2/medium | 3/strong | 4/very-strong
-* --contains (-c): String -> [,]Array
-*
-* Logic:
-* &
-* |
-*/
+ * Filters:
+ * --name (-n): String
+ * --username (-u): String
+ * --leaked (-l): void
+ * --strength (-s): 0/very-weak | 1/weak | 2/medium | 3/strong | 4/very-strong
+ * --contains (-c): String -> [,]Array
+ *
+ * Logic:
+ * &
+ * |
+ */
 
 async function filterPass(filters) {
-  let length = filters.length, filtered = []
+  let length = filters.length,
+    filtered = []
+  if (filters[0] === "--at" || filters[0] === "-a") {
+    let input = parseInt(filters[1])
+    if (
+      input === undefined ||
+      Number.isNaN(input) ||
+      input <= 0 ||
+      input > _PASSWORDS.length
+    )
+      throw new Error(WARN("Password index out of bounds."))
+    return [input - 1]
+  }
   for (const i in _PASSWORDS) {
-    for (const j = 0; j < length; j++) {
-      switch (filter[j]) {
+    for (let j = 0; j < length; j++) {
+      switch (filters[j]) {
         case "--name":
         case "-n":
-          if (_PASSWORDS[i].name.toLowerCase().includes(filter[j + 1].toLowerCase()))
+          if (
+            _PASSWORDS[i].name
+              .toLowerCase()
+              .includes(filters[j + 1].toLowerCase())
+          )
             filtered.push(i)
           j++
           break
         case "--username":
         case "-u":
-          if (_PASSWORDS[i].username.toLowerCase().includes(filter[j + 1].toLowerCase()))
+          if (
+            _PASSWORDS[i].username
+              .toLowerCase()
+              .includes(filters[j + 1].toLowerCase())
+          )
             filtered.push(i)
           j++
           break
         case "--leaked":
         case "-l":
-          if (!(await pwnedPassword(_PASSWORDS[i].password)))
-            filtered.push(i)
+          if (!(await pwnedPassword(_PASSWORDS[i].password))) filtered.push(i)
           break
         case "--strength":
         case "-s":
+          const strength = passStrength(_PASSWORDS[i].password).score,
+            measure = [
+              WARN("[VERY WEAK]"),
+              chalk.yellow.bold("[WEAK]"),
+              "[MEDIUM]",
+              chalk.blue.bold("[STRONG]"),
+              OK("[VERY STRONG]"),
+            ],
+            keywords = ["very-weak", "weak", "medium", "strong", "very-strong"],
+            index = measure.indexOf(strength)
+          if ("01234".includes(filters[j + 1])) {
+            if (index.toString() === filters[j + 1]) filtered.push(i)
+          } else if (keywords.includes(filters[j + 1])) {
+            if (index === keywords.indexOf(filters[j + 1])) filtered.push(i)
+          } else {
+            throw new Error(WARN("Invalid password score."))
+          }
+          j++
           break
         default:
-        console.log("err")
+          throw new Error(WARN("Invalid flag."))
       }
     }
   }
+  return filtered
 }
 
 /*
