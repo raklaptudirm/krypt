@@ -1,8 +1,12 @@
-# v4.0.2:
+# v4.1.0
+
+- Krypt now automatically filters empty args.
+
+# v4.0.2
 
 - Fixed initaialization error.
 
-# v4.0.1:
+# v4.0.1
 
 - Add flag aliases.
 

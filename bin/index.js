@@ -344,7 +344,7 @@ async function main() {
         let input = readlineSync.prompt() //.toLowerCase()
         if (_DATABASE.settings.alias[input] !== undefined)
           input = _DATABASE.settings.alias[input]
-        input = input.split(" ")
+        input = input.split(" ").filter(item => item !== "")
 
         if (input[0] === "exit") {
           if (input.length > 2) {
@@ -1583,6 +1583,51 @@ function printNote(note, index) {
       note.date
     )}\n\n${"-".repeat(24)}\n\n${str}\n\n${"-".repeat(24)}`
   )
+}
+
+/*
+* Filters:
+* --name (-n): String
+* --username (-u): String
+* --leaked (-l): void
+* --strength (-s): 0/very-weak | 1/weak | 2/medium | 3/strong | 4/very-strong
+* --contains (-c): String -> [,]Array
+*
+* Logic:
+* &
+* |
+*/
+
+async function filterPass(filters) {
+  let length = filters.length, filtered = []
+  for (const i in _PASSWORDS) {
+    for (const j = 0; j < length; j++) {
+      switch (filter[j]) {
+        case "--name":
+        case "-n":
+          if (_PASSWORDS[i].name.toLowerCase().includes(filter[j + 1].toLowerCase()))
+            filtered.push(i)
+          j++
+          break
+        case "--username":
+        case "-u":
+          if (_PASSWORDS[i].username.toLowerCase().includes(filter[j + 1].toLowerCase()))
+            filtered.push(i)
+          j++
+          break
+        case "--leaked":
+        case "-l":
+          if (!(await pwnedPassword(_PASSWORDS[i].password)))
+            filtered.push(i)
+          break
+        case "--strength":
+        case "-s":
+          break
+        default:
+        console.log("err")
+      }
+    }
+  }
 }
 
 /*
