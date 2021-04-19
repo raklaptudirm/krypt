@@ -1,6 +1,8 @@
 # v4.1.0
 
 - Krypt now automatically filters empty args.
+- `gent` password filtration flags added.
+- `gent` flags now act as `and` instead of `or`.
 
 # v4.0.2
 
