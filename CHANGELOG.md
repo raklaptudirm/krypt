@@ -2,7 +2,15 @@
 
 - Krypt now automatically filters empty args.
 - `gent` password filtration flags added.
+  - `--leaked`(`-l`) > void
+  - `--strength`(`-s`) > 0-4 [very-weak, weak, medium, strong, very-strong]
+  - `--clear-text`(`-clt`) > void
+  - `--name`(`-n`) > String
+  - `--username`(`-u`) > String
 - `gent` flags now act as `and` instead of `or`.
+- Added sort flags to `copy`.
+- Removed `search`, `gpass` and `list` commands.
+- Renamed `gent` to `get`.
 
 # v4.0.2
 

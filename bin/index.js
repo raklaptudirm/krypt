@@ -53,11 +53,9 @@ const _DATA_TEMPLATE = {
       notes: { iv: "", encryptedData: "" },
     },
   },
-  // todo: update help
   _COMMS = [
     "new",
-    "gent",
-    "gpass",
+    "get",
     "secure",
     "change",
     "strength",
@@ -67,8 +65,6 @@ const _DATA_TEMPLATE = {
     "set",
     "help",
     "exit",
-    "list",
-    "search",
     "copy",
     "archive",
     "notes",
@@ -124,10 +120,6 @@ const _DATA_TEMPLATE = {
         use: "Prints the active database.",
       },
     },
-    gpass: {
-      format: "gpass <pass_id>",
-      use: "Get a password in clear-text.",
-    },
     new: {
       format: "new",
       use: "Create a new password.",
@@ -150,9 +142,32 @@ const _DATA_TEMPLATE = {
         },
       },
     },
-    gent: {
-      format: "gent <entry_id>",
+    get: {
+      format: "get <entry_id>",
       use: "Get a password entry.",
+      flags: {
+        leaked: {
+          use: "Filter the leaked passwords.",
+          alias: "-l",
+        },
+        strength: {
+          use:
+            "Filter passwords of the given strength.\nValues:\n0 or very-weak\n 1 or weak\n2 or medium\n3 or strong\n4 or very-strong",
+          alias: "-s",
+        },
+        name: {
+          use: "Filter passwords with the given name.",
+          alias: "-n",
+        },
+        username: {
+          use: "Filter passwords with the given username.",
+          alias: "-u",
+        },
+        clear_text: {
+          use: "Print the passwords in clear-text",
+          alias: "-clt",
+        },
+      },
     },
     secure: {
       format: "secure",
@@ -196,17 +211,28 @@ const _DATA_TEMPLATE = {
       format: "edit <pass_id>",
       use: "Edit a stored password.",
     },
-    list: {
-      format: "list",
-      use: "Lists all the stored passwords.",
-    },
-    search: {
-      format: "search <keyword>",
-      use: "Search a password with a particular name.",
-    },
     copy: {
       format: "copy <pass_id>",
       use: "Copy a password to the clipboard.",
+      flags: {
+        leaked: {
+          use: "Filter the leaked passwords.",
+          alias: "-l",
+        },
+        strength: {
+          use:
+            "Filter passwords of the given strength.\nValues:\n0 or very-weak\n 1 or weak\n2 or medium\n3 or strong\n4 or very-strong",
+          alias: "-s",
+        },
+        name: {
+          use: "Filter passwords with the given name.",
+          alias: "-n",
+        },
+        username: {
+          use: "Filter passwords with the given username.",
+          alias: "-u",
+        },
+      },
     },
     archive: {
       use: "Archive command package to archive files and directories.",
@@ -388,15 +414,20 @@ async function main() {
             OK(`Sucessfully added password at ID:${_PASSWORDS.length}.`)
           )
           reEncryptData()
-        } else if (input[0] === "gent") {
+        } else if (input[0] === "get") {
           if (input.length < 2) {
             console.log(
-              WARN(`Expected at least 1 arg(s), received ${input.length - 1}`)
+              WARN(`Expected multiple arg(s), received ${input.length - 1}`)
             )
             continue
           }
+          let print,
+            clear = false
           input = input.slice(1)
-          let print
+          if (input[0] === "--clear-text" || input[0] === "-clt") {
+            input = input.slice(1)
+            clear = true
+          }
           try {
             print = await filterPass(input)
           } catch (e) {
@@ -406,32 +437,10 @@ async function main() {
           if (print.length === 0)
             console.log(WARN("No passwords match the criteria."))
           else {
-            for (const i of print) printPass(_PASSWORDS[i], i + 1)
+            if (clear)
+              for (const i of print) console.log(_PASSWORDS[i].password)
+            else for (const i of print) printPass(_PASSWORDS[i], i + 1)
           }
-        } else if (input[0] === "gpass") {
-          if (input.length !== 2) {
-            console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue
-          }
-          input = parseInt(input[1]) - 1
-          if (
-            input === undefined ||
-            Number.isNaN(input) ||
-            input < 0 ||
-            input >= _PASSWORDS.length
-          ) {
-            console.log(WARN("ID out of bounds."))
-          }
-          const sel = readlineSync.question(
-            WARN(
-              "This command will show your password in clear-text. Proceed? (yes): "
-            )
-          )
-          if (sel !== "yes") {
-            console.log(OK("Command aborted."))
-            continue
-          }
-          console.log(chalk.cyan.bold(_PASSWORDS[input].password))
         } else if (input[0] === "delete") {
           if (input.length !== 2) {
             console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
@@ -643,31 +652,6 @@ async function main() {
           )
           console.log(OK("Successfully edited password."))
           reEncryptData()
-        } else if (input[0] === "list") {
-          if (input.length > 1) {
-            console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
-            continue
-          }
-          for (const i in _PASSWORDS) {
-            console.log("")
-            printPass(_PASSWORDS[i], parseInt(i) + 1)
-          }
-          if (_PASSWORDS.length === 0)
-            console.log(WARN("You do not have any stored passwords."))
-        } else if (input[0] === "search") {
-          if (input.length !== 2) {
-            console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue
-          }
-          let notFound = true
-          for (const i in _PASSWORDS) {
-            if (_PASSWORDS[i].name.toLowerCase().includes(input[1])) {
-              printPass(_PASSWORDS[i], parseInt(i) + 1)
-              notFound = false
-              console.log("")
-            }
-          }
-          if (notFound) console.log(WARN("No matches found."))
         } else if (input[0] === "set") {
           if (input.length < 2) {
             console.log(
@@ -892,21 +876,18 @@ async function main() {
             console.log(WARN("Setting not found."))
           }
         } else if (input[0] === "copy") {
-          if (input.length !== 2) {
-            console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
+          if (input.length < 2) {
+            console.log(
+              WARN(`Expected multiple arg(s), received ${input.length - 1}`)
+            )
             continue
           }
-          input = parseInt(input[1]) - 1
-          if (
-            input === undefined ||
-            Number.isNaN(input) ||
-            input < 0 ||
-            input >= _PASSWORDS.length
-          ) {
-            console.log(WARN("ID out of bounds."))
-          } else {
-            clipboardy.writeSync(_PASSWORDS[input].password)
+          let matches = await filterPass(input.slice(1))
+          if (matches.length) {
+            clipboardy.writeSync(_PASSWORDS[matches[0]].password)
             console.log(OK("Password copied to clipboard."))
+          } else {
+            console.log(WARN("No matches found."))
           }
         } else if (input[0] === "strength") {
           if (input.length !== 2) {
@@ -1566,8 +1547,8 @@ function getItem(ob, path) {
 }
 
 function printNote(note, index) {
-  let _FORMAT_OP = /<(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|magenta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magentaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMagenta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagentaBright|bgCyanBright|bgWhiteBright)>/,
-    _FORMAT_CL = /<\/(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|magenta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magentaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMagenta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagentaBright|bgCyanBright|bgWhiteBright)>/,
+  let _FORMAT_OP = /<(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|mageta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magetaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMageta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagetaBright|bgCyanBright|bgWhiteBright)>/,
+    _FORMAT_CL = /<\/(reset|bold|dim|italic|underline|overline|inverse|hidden|strikethrough|black|red|green|yellow|blue|mageta|cyan|white|blackBright|redBright|greenBright|yellowBright|blueBright|magetaBright|cyanBright|whiteBright|bgBlack|bgRed|bgGreen|bgYellow|bgBlue|bgMageta|bgCyan|bgWhite|bgBlackBright|bgRedBright|bgGreenBright|bgYellowBright|bgBlueBright|bgMagetaBright|bgCyanBright|bgWhiteBright)>/,
     str = note.info
 
   while (_FORMAT_OP.exec(str)) {
@@ -1619,8 +1600,7 @@ async function filterPass(filters) {
   for (const i in _PASSWORDS) {
     let prev = true
     for (let j = 0; j < length; j++) {
-      if (!prev)
-        break
+      if (!prev) break
       prev = false
       switch (filters[j]) {
         case "--name":
@@ -1672,8 +1652,7 @@ async function filterPass(filters) {
           throw new Error(WARN("Invalid flag."))
       }
     }
-    if (prev)
-      filtered.push(i)
+    if (prev) filtered.push(i)
   }
   return filtered
 }
