@@ -403,7 +403,6 @@ async function main() {
             console.log(e.message)
             continue
           }
-          console.log(print)
           if (print.length === 0)
             console.log(WARN("No passwords match the criteria."))
           else {
@@ -1618,7 +1617,11 @@ async function filterPass(filters) {
     return [input - 1]
   }
   for (const i in _PASSWORDS) {
+    let prev = true
     for (let j = 0; j < length; j++) {
+      if (!prev)
+        break
+      prev = false
       switch (filters[j]) {
         case "--name":
         case "-n":
@@ -1627,7 +1630,7 @@ async function filterPass(filters) {
               .toLowerCase()
               .includes(filters[j + 1].toLowerCase())
           )
-            filtered.push(i)
+            prev = true
           j++
           break
         case "--username":
@@ -1637,12 +1640,12 @@ async function filterPass(filters) {
               .toLowerCase()
               .includes(filters[j + 1].toLowerCase())
           )
-            filtered.push(i)
+            prev = true
           j++
           break
         case "--leaked":
         case "-l":
-          if (!(await pwnedPassword(_PASSWORDS[i].password))) filtered.push(i)
+          if (!(await pwnedPassword(_PASSWORDS[i].password))) prev = true
           break
         case "--strength":
         case "-s":
@@ -1657,9 +1660,9 @@ async function filterPass(filters) {
             keywords = ["very-weak", "weak", "medium", "strong", "very-strong"],
             index = measure.indexOf(strength)
           if ("01234".includes(filters[j + 1])) {
-            if (index.toString() === filters[j + 1]) filtered.push(i)
+            if (index.toString() === filters[j + 1]) prev = true
           } else if (keywords.includes(filters[j + 1])) {
-            if (index === keywords.indexOf(filters[j + 1])) filtered.push(i)
+            if (index === keywords.indexOf(filters[j + 1])) prev = true
           } else {
             throw new Error(WARN("Invalid password score."))
           }
@@ -1669,6 +1672,8 @@ async function filterPass(filters) {
           throw new Error(WARN("Invalid flag."))
       }
     }
+    if (prev)
+      filtered.push(i)
   }
   return filtered
 }
