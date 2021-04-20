@@ -172,7 +172,7 @@ const _DATA_TEMPLATE = {
         clear_text: {
           use: "Print the passwords in clear-text",
           alias: "-clt",
-          value: "void"
+          value: "void",
         },
       },
     },
@@ -199,7 +199,7 @@ const _DATA_TEMPLATE = {
         wordy: {
           use: "Generate a wordy password.",
           alias: "-w",
-          value: "Boolean"
+          value: "Boolean",
         },
       },
     },
@@ -369,8 +369,7 @@ async function main() {
       console.log()
       if (_DATABASE.settings.TwoFA.on)
         console.log("\u001b[4A\u001b[0G\u001b[0J")
-      else
-        console.log("\u001b[3A\u001b[0G\u001b[0J")
+      else console.log("\u001b[3A\u001b[0G\u001b[0J")
       console.log(OK("Logged in."))
       loadData()
       while (true) {
@@ -566,10 +565,8 @@ async function main() {
           let type
           if (input[1] === undefined) type = _DATABASE.settings.passwordWordy
           else if (input[1] === "--wordy" || input[1] === "-w") {
-            if (input[2] === "true")
-              type = true
-            else if (input[2] === "false")
-              type = false
+            if (input[2] === "true") type = true
+            else if (input[2] === "false") type = false
             else {
               console.log(WARN("Invalid argument."))
               continue
@@ -625,9 +622,9 @@ async function main() {
                 let id = item
                 while (item.includes("_")) item = item.replace("_", "-")
                 console.log(
-                  `  --${chalk.bold(item)} <${chalk.bold(manual.flags[id].value)}> (${manual.flags[id].alias}): ${
-                    manual.flags[id].use
-                  }`
+                  `  --${chalk.bold(item)} <${chalk.bold(
+                    manual.flags[id].value
+                  )}> (${manual.flags[id].alias}): ${manual.flags[id].use}`
                 )
               })
             }
