@@ -108,6 +108,7 @@ const _DATA_TEMPLATE = {
           wordy: {
             use: "Generate a wordy password.",
             alias: "-w",
+            value: "void",
           },
         },
       },
@@ -139,6 +140,7 @@ const _DATA_TEMPLATE = {
         no_clear: {
           use: "Do not clear the console while exiting.",
           alias: "-ncl",
+          value: "void",
         },
       },
     },
@@ -149,23 +151,28 @@ const _DATA_TEMPLATE = {
         leaked: {
           use: "Filter the leaked passwords.",
           alias: "-l",
+          value: "void",
         },
         strength: {
           use:
-            "Filter passwords of the given strength.\nValues:\n0 or very-weak\n 1 or weak\n2 or medium\n3 or strong\n4 or very-strong",
+            "Filter passwords of the given strength.\n    Values:\n    0 or very-weak\n    1 or weak\n    2 or medium\n    3 or strong\n    4 or very-strong",
           alias: "-s",
+          value: "Integer",
         },
         name: {
           use: "Filter passwords with the given name.",
           alias: "-n",
+          value: "String",
         },
         username: {
           use: "Filter passwords with the given username.",
           alias: "-u",
+          value: "String",
         },
         clear_text: {
           use: "Print the passwords in clear-text",
           alias: "-clt",
+          value: "void"
         },
       },
     },
@@ -192,10 +199,7 @@ const _DATA_TEMPLATE = {
         wordy: {
           use: "Generate a wordy password.",
           alias: "-w",
-        },
-        no_wordy: {
-          use: "Generate a non-wordy password.",
-          alias: "-nw",
+          value: "Boolean"
         },
       },
     },
@@ -218,19 +222,23 @@ const _DATA_TEMPLATE = {
         leaked: {
           use: "Filter the leaked passwords.",
           alias: "-l",
+          value: "void",
         },
         strength: {
           use:
-            "Filter passwords of the given strength.\nValues:\n0 or very-weak\n 1 or weak\n2 or medium\n3 or strong\n4 or very-strong",
+            "Filter passwords of the given strength.\n    Values:\n    0 or very-weak\n    1 or weak\n    2 or medium\n    3 or strong\n    4 or very-strong",
           alias: "-s",
+          value: "Integer",
         },
         name: {
           use: "Filter passwords with the given name.",
           alias: "-n",
+          value: "String",
         },
         username: {
           use: "Filter passwords with the given username.",
           alias: "-u",
+          value: "String",
         },
       },
     },
@@ -358,12 +366,12 @@ async function main() {
         _DATABASE.settings.TwoFA.answer.checksum ===
           crypto.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))
     ) {
-      console.log("\u001b[2J")
-      console.log("")
-      LOGO()
-      console.log("")
-      console.log(`\n${OK(`Database: [ ${_NAME} ]`)}\n`)
-      console.log("\n" + OK("Logged in."))
+      console.log()
+      if (_DATABASE.settings.TwoFA.on)
+        console.log("\u001b[4A\u001b[0G\u001b[0J")
+      else
+        console.log("\u001b[3A\u001b[0G\u001b[0J")
+      console.log(OK("Logged in."))
       loadData()
       while (true) {
         console.log("")
@@ -415,17 +423,14 @@ async function main() {
           )
           reEncryptData()
         } else if (input[0] === "get") {
-          if (input.length < 2) {
-            console.log(
-              WARN(`Expected multiple arg(s), received ${input.length - 1}`)
-            )
-            continue
-          }
           let print,
             clear = false
           input = input.slice(1)
-          if (input[0] === "--clear-text" || input[0] === "-clt") {
-            input = input.slice(1)
+          if (input.includes("--clear-text")) {
+            input.splice(input.indexOf("--clear-text"), 1)
+            clear = true
+          } else if (input.includes("-clt")) {
+            input.splice(input.indexOf("-clt"), 1)
             clear = true
           }
           try {
@@ -552,17 +557,24 @@ async function main() {
             console.log(WARN("Invalid argument."))
           }
         } else if (input[0] === "make") {
-          if (input.length > 2) {
+          if (input.length > 3) {
             console.log(
-              WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
+              WARN(`Expected 0-2 arg(s), received ${input.length - 1}`)
             )
             continue
           }
           let type
           if (input[1] === undefined) type = _DATABASE.settings.passwordWordy
-          else if (input[1] === "--wordy" || input[1] === "-w") type = true
-          else if (input[1] === "--no-wordy" || input[1] === "-nw") type = false
-          else {
+          else if (input[1] === "--wordy" || input[1] === "-w") {
+            if (input[2] === "true")
+              type = true
+            else if (input[2] === "false")
+              type = false
+            else {
+              console.log(WARN("Invalid argument."))
+              continue
+            }
+          } else {
             console.log(WARN("Invalid argument."))
             continue
           }
@@ -594,14 +606,14 @@ async function main() {
             console.log(OK(manual.use) + "\n")
             console.log(chalk.bold(`Child commands:`))
             Object.keys(manual)
-              .filters(item => item !== "use")
+              .filter(item => item !== "use")
               .forEach(item => {
                 console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
               })
           } else {
             console.log(`${CODE(manual.format)}\n${OK(manual.use)}\n`)
             Object.keys(manual)
-              .filters(
+              .filter(
                 item => item !== "use" && item !== "format" && item !== "flags"
               )
               .forEach(item => {
@@ -613,7 +625,7 @@ async function main() {
                 let id = item
                 while (item.includes("_")) item = item.replace("_", "-")
                 console.log(
-                  `  --${chalk.bold(item)} (${manual.flags[id].alias}): ${
+                  `  --${chalk.bold(item)} <${chalk.bold(manual.flags[id].value)}> (${manual.flags[id].alias}): ${
                     manual.flags[id].use
                   }`
                 )
@@ -661,7 +673,7 @@ async function main() {
           }
           if (input[1] === "tfa") {
             if (!_DATABASE.settings.TwoFA.on) {
-              if (input.length > 1) {
+              if (input.length > 2) {
                 console.log(
                   WARN(`Expected 0 arg(s), received ${input.length - 1}`)
                 )
@@ -690,7 +702,7 @@ async function main() {
               if (input[2] === "dis") {
                 if (input.length > 3) {
                   console.log(
-                    WARN(`Expected 0 arg(s), received ${input.length - 3}`)
+                    WARN(`Expected 1 arg(s), received ${input.length - 2}`)
                   )
                   continue
                 }

@@ -11,6 +11,8 @@
 - Added sort flags to `copy`.
 - Removed `search`, `gpass` and `list` commands.
 - Renamed `gent` to `get`.
+- Added flag values to help.
+- Better login details removal with `ansi` escape codes.
 
 # v4.0.2
 
