@@ -19,25 +19,25 @@ A smart, secure, and feature-rich terminal password manager. Krypt uses all the 
 
 Clone the repo:
 
-```
+```bash
 git clone https://github.com/Mkorp-Official/Krypt.git
 ```
 
 Change your directory:
 
-```
+```bash
 cd path/to/krypt
 ```
 
 Install the script:
 
-```
+```bash
 npm install -global
 ```
 
 Start the process:
 
-```
+```bash
 krypt
 ```
 
