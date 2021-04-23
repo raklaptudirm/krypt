@@ -1,3 +1,9 @@
+# v4.2.0:
+
+- Better aliases.
+- Alias params, with [$n].
+- Krypt fullscreen: `krypt --fullscreen`.
+
 # v4.1.0
 
 - Krypt now automatically filters empty args.

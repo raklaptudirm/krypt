@@ -73,6 +73,14 @@ const _DATA_TEMPLATE = {
   _HELP = {
     krypt: {
       use: "Global Krypt command.",
+      format: "krypt",
+      flags: {
+        fullscreen: {
+          use: "Clear the console and run Krypt.",
+          alias: "-fs",
+          value: "void",
+        }
+      },
       new: {
         format: "krypt new",
         use: "Create a new Krypt database",
@@ -346,8 +354,12 @@ let _DATABASE,
  */
 
 async function main() {
-  if (fs.existsSync(__dirname + "/../databases/" + _NAME + ".json")) {
-    if (!loadDatabase()) return
+
+  /*
+  * Main process local functions
+  */
+
+  function login() {
     _MAST = readlineSync.question("PASSWORD: ", { hideEchoBack: true })
     _KEY = crypto.PBKDF2_HASH(_MAST, _DATABASE.salt.key)
 
@@ -358,45 +370,68 @@ async function main() {
         }),
         _DATABASE.salt.TwoFA
       )
+    if (_DATABASE.checksum.checksum ===
+          crypto.PBKDF2_HASH(_KEY, _DATABASE.checksum.salt) &&
+        (!_DATABASE.settings.TwoFA.on ||
+          _DATABASE.settings.TwoFA.answer.checksum ===
+            crypto.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt)))
+      return true
+    return false
+  }
 
-    if (
-      _DATABASE.checksum.checksum ===
-        crypto.PBKDF2_HASH(_KEY, _DATABASE.checksum.salt) &&
-      (!_DATABASE.settings.TwoFA.on ||
-        _DATABASE.settings.TwoFA.answer.checksum ===
-          crypto.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))
-    ) {
-      console.log()
-      if (_DATABASE.settings.TwoFA.on)
-        console.log("\u001b[4A\u001b[0G\u001b[0J")
-      else console.log("\u001b[3A\u001b[0G\u001b[0J")
-      console.log(OK("Logged in."))
+  function hideLogin() {
+    console.log()
+    if (_DATABASE.settings.TwoFA.on)
+      console.log("\u001b[4A\u001b[0G\u001b[0J")
+    else console.log("\u001b[3A\u001b[0G\u001b[0J")
+    console.log(OK("Logged in."))
+  }
+
+  function parseInput() {
+    console.log("")
+    let input = readlineSync.prompt()
+    input = input.split(" ").filter(item => item !== "")
+    for (const i of _DATABASE.settings.alias) {
+      if (i.name === input[0]) {
+        let extra = input.splice(i.argLength + 1)
+        let args = input
+        input = i.command
+        for (const j in input) {
+          if (input[j].startsWith("$"))
+            input[j] = args[parseInt(input[j].slice(1))] ?? ""
+        }
+        input = input.concat(extra)
+        break
+      }
+    }
+    return input.filter(item => item !== "")
+  }
+
+  if (fs.existsSync(__dirname + "/../databases/" + _NAME + ".json")) {
+    if (!loadDatabase()) return
+    if (login()) {
+      hideLogin()
       loadData()
-      while (true) {
-        console.log("")
-        let input = readlineSync.prompt() //.toLowerCase()
-        if (_DATABASE.settings.alias[input] !== undefined)
-          input = _DATABASE.settings.alias[input]
-        input = input.split(" ").filter(item => item !== "")
-
+      main: while (true) {
+        let input = parseInput()
         if (input[0] === "exit") {
           if (input.length > 2) {
             console.log(
               WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
             )
-            continue
+            continue main
           }
           if (input[1] === "--no-clear" || input[1] === "-ncl") break
           else if (input.length > 1) {
             console.log(WARN(`Invalid argument.`))
-            continue
+            continue main
           }
           console.log("\u001b[2J")
           break
         } else if (input[0] === "change") {
           if (input.length > 1) {
             console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
-            continue
+            continue main
           }
           _KEY = crypto.PBKDF2_HASH(
             readlineSync.questionNewPassword("Enter new Password: ", { min: 8 })
@@ -408,7 +443,7 @@ async function main() {
         } else if (input[0] === "new") {
           if (input.length > 1) {
             console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
-            continue
+            continue main
           }
           const name_ = readlineSync.question("Password Name: ")
           const username_ = readlineSync.question("Username: ")
@@ -436,7 +471,7 @@ async function main() {
             print = await filterPass(input)
           } catch (e) {
             console.log(e.message)
-            continue
+            continue main
           }
           if (print.length === 0)
             console.log(WARN("No passwords match the criteria."))
@@ -448,7 +483,7 @@ async function main() {
         } else if (input[0] === "delete") {
           if (input.length !== 2) {
             console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue
+            continue main
           }
           input = parseInt(input[1]) - 1
           if (
@@ -458,13 +493,13 @@ async function main() {
             input >= _PASSWORDS.length
           ) {
             console.log(WARN("ID out of bounds."))
-            continue
+            continue main
           }
           printPass(_PASSWORDS[input], input)
           const sel = readlineSync.question(WARN("Delete this entry? (yes): "))
           if (sel !== "yes") {
             console.log(OK("Delete aborted."))
-            continue
+            continue main
           }
           _PASSWORDS.splice(input, 1)
           console.log(OK("Password deleted Successfully."))
@@ -474,7 +509,7 @@ async function main() {
             console.log(
               WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
             )
-            continue
+            continue main
           }
           const [Sweaks, Pweaks, Duplicates] = await getWeaks()
           if (input[1] === undefined) {
@@ -560,7 +595,7 @@ async function main() {
             console.log(
               WARN(`Expected 0-2 arg(s), received ${input.length - 1}`)
             )
-            continue
+            continue main
           }
           let type
           if (input[1] === undefined) type = _DATABASE.settings.passwordWordy
@@ -569,11 +604,11 @@ async function main() {
             else if (input[2] === "false") type = false
             else {
               console.log(WARN("Invalid argument."))
-              continue
+              continue main
             }
           } else {
             console.log(WARN("Invalid argument."))
-            continue
+            continue main
           }
           const newPass = generatePassword(type)
           console.log(chalk.cyan.bold(newPass))
@@ -583,7 +618,7 @@ async function main() {
             console.log(
               WARN(`Expected multiple arg(s), received ${input.length - 1}`)
             )
-            continue
+            continue main
           }
           input.splice(0, 1)
           if (
@@ -592,12 +627,12 @@ async function main() {
             input.includes("flags")
           ) {
             console.log(WARN("Command not found."))
-            continue
+            continue main
           }
           let manual = getItem(_HELP, input)
           if (manual === undefined) {
             console.log(WARN("Command not found."))
-            continue
+            continue main
           }
           if (manual.format === undefined) {
             console.log(OK(manual.use) + "\n")
@@ -609,6 +644,7 @@ async function main() {
               })
           } else {
             console.log(`${CODE(manual.format)}\n${OK(manual.use)}\n`)
+            console.log(chalk.bold(`Child commands:`))
             Object.keys(manual)
               .filter(
                 item => item !== "use" && item !== "format" && item !== "flags"
@@ -616,6 +652,7 @@ async function main() {
               .forEach(item => {
                 console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
               })
+              console.log()
             if (manual.flags !== undefined) {
               console.log(chalk.bold(`Flags:`))
               Object.keys(manual.flags).forEach(item => {
@@ -632,7 +669,7 @@ async function main() {
         } else if (input[0] === "edit") {
           if (input.length !== 2) {
             console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue
+            continue main
           }
           input = parseInt(input[1]) - 1
           if (
@@ -642,7 +679,7 @@ async function main() {
             input >= _PASSWORDS.length
           ) {
             console.log(WARN("ID out of bounds."))
-            continue
+            continue main
           }
           const name_ = readlineSync.question(
             "Password Name (leave empty to keep same): "
@@ -666,7 +703,7 @@ async function main() {
             console.log(
               WARN(`Expected multiple arg(s), received ${input.length - 1}`)
             )
-            continue
+            continue main
           }
           if (input[1] === "tfa") {
             if (!_DATABASE.settings.TwoFA.on) {
@@ -674,7 +711,7 @@ async function main() {
                 console.log(
                   WARN(`Expected 0 arg(s), received ${input.length - 1}`)
                 )
-                continue
+                continue main
               }
               const sel = readlineSync.question(
                 OK("Enable 2-Factor Authentication? (yes): ")
@@ -701,7 +738,7 @@ async function main() {
                   console.log(
                     WARN(`Expected 1 arg(s), received ${input.length - 2}`)
                   )
-                  continue
+                  continue main
                 }
                 const sel = readlineSync.question(
                   WARN("Disable 2-Factor Authentication? (yes): ")
@@ -718,7 +755,7 @@ async function main() {
                   console.log(
                     WARN(`Expected 0 arg(s), received ${input.length - 2}`)
                   )
-                  continue
+                  continue main
                 }
                 _DATABASE.settings.TwoFA.question =
                   readlineSync.question(
@@ -740,7 +777,7 @@ async function main() {
                 console.log(
                   WARN(`Expected 0 arg(s), received ${input.length - 2}`)
                 )
-                continue
+                continue main
               }
               const sel = readlineSync.question(OK("Enable Hint? (yes): "))
               if (sel === "yes") {
@@ -759,7 +796,7 @@ async function main() {
                   console.log(
                     WARN(`Expected 0 arg(s), received ${input.length - 3}`)
                   )
-                  continue
+                  continue main
                 }
                 const sel = readlineSync.question(WARN("Disable Hint? (yes): "))
                 if (sel === "yes") {
@@ -774,7 +811,7 @@ async function main() {
                   console.log(
                     WARN(`Expected 0 arg(s), received ${input.length - 2}`)
                   )
-                  continue
+                  continue main
                 }
                 _DATABASE.settings.hint.hint =
                   readlineSync.question(
@@ -789,24 +826,35 @@ async function main() {
               console.log(
                 WARN(`Expected multiple arg(s), received ${input.length - 2}`)
               )
-              continue
+              continue main
             }
             if (input[2] === "new") {
               if (input.length > 3) {
                 console.log(
                   WARN(`Expected 0 arg(s), received ${input.length - 3}`)
                 )
-                continue
+                continue main
               }
               const alias = readlineSync.question("Enter alias name: ")
-              if (
-                _DATABASE.settings.alias[alias] === undefined &&
+              let isNotAlias = true
+              for (const i of _DATABASE.settings.alias) {
+                if (i.name === alias){
+                  isNotAlias = false
+                  break
+                }
+              }
+              if ( isNotAlias &&
                 isNotCommand(alias)
               ) {
                 if (is(alias, _BASENAME)) {
-                  _DATABASE.settings.alias[alias] = readlineSync.question(
-                    "Enter alias command: "
-                  )
+                  try {
+                    _DATABASE.settings.alias.push(parseAlias(alias, readlineSync.question(
+                      "Enter alias command: "
+                    )))
+                  } catch (err) {
+                    console.log(WARN(err))
+                    continue main
+                  }
                   console.log(OK("Alias set."))
                   reEncryptData()
                 } else {
@@ -820,52 +868,54 @@ async function main() {
                 console.log(
                   WARN(`Expected 1 arg(s), received ${input.length - 3}`)
                 )
-                continue
+                continue main
               }
-              if (_DATABASE.settings.alias[input[3]] === undefined) {
-                console.log(WARN("Could not find alias."))
-              } else {
-                const alias = readlineSync.question("Enter new name: ")
-                if (is(alias, _BASENAME)) {
-                  _DATABASE.settings.alias[alias] =
-                    _DATABASE.settings.alias[input[3]]
-                  delete _DATABASE.settings.alias[input[3]]
-                  console.log(OK("Alias renamed successfully."))
-                  reEncryptData()
-                } else {
-                  console.log(WARN("Illegal alias name."))
+              for (const i of _DATABASE.settings.alias) {
+                if (i.name === input[3]) {
+                  const alias = readlineSync.question("Enter new name: ")
+                  if (is(alias, _BASENAME)) {
+                    i.name = alias
+                    console.log(OK("Alias renamed successfully."))
+                    reEncryptData()
+
+                  } else {
+                    console.log(WARN("Illegal alias name."))
+                  }
+                  continue main
                 }
               }
+              console.log(WARN("Could not find alias."))
             } else if (input[2] === "delete") {
               if (input.length !== 4) {
                 console.log(
                   WARN(`Expected 1 arg(s), received ${input.length - 3}`)
                 )
-                continue
+                continue main
               }
-              if (_DATABASE.settings.alias[input[3]] === undefined) {
-                console.log(WARN("Could not find alias."))
-              } else {
-                delete _DATABASE.settings.alias[input[3]]
-                console.log(OK("Alias deleted successfully."))
-                reEncryptData()
+              for (const i in _DATABASE.settings.alias) {
+                if (_DATABASE.settings.alias[i].name === input[3]) {
+                  _DATABASE.settings.alias.splice(i, 1)
+                  console.log(OK("Alias deleted successfully."))
+                  reEncryptData()
+                  continue main
+                }
               }
+              console.log(WARN("Could not find alias."))
             } else if (input[2] === "list") {
               if (input.length > 3) {
                 console.log(
                   WARN(`Expected 0 arg(s), received ${input.length - 3}`)
                 )
-                continue
+                continue main
               }
               console.log("")
-              for (const i in _DATABASE.settings.alias) {
+              for (const i of _DATABASE.settings.alias) {
                 console.log(
-                  `${chalk.blue.bold(i)}: ${chalk.yellow.bold(
-                    _DATABASE.settings.alias[i]
+                  `[${chalk.bold(i.name)}] ${chalk.yellow.bold(i.command.join(" ")
                   )}`
                 )
               }
-              if (Object.keys(_DATABASE.settings.alias).length === 0)
+              if (_DATABASE.settings.alias.length === 0)
                 console.log(WARN("You do not have any stored aliases."))
             } else {
               console.log(WARN("Invalid argument."))
@@ -875,7 +925,7 @@ async function main() {
               console.log(
                 WARN(`Expected 0 arg(s), received ${input.length - 2}`)
               )
-              continue
+              continue main
             }
             _DATABASE.settings.passwordWordy = !_DATABASE.settings.passwordWordy
             if (_DATABASE.settings.passwordWordy)
@@ -889,7 +939,7 @@ async function main() {
             console.log(
               WARN(`Expected multiple arg(s), received ${input.length - 1}`)
             )
-            continue
+            continue main
           }
           let matches = await filterPass(input.slice(1))
           if (matches.length) {
@@ -901,7 +951,7 @@ async function main() {
         } else if (input[0] === "strength") {
           if (input.length !== 2) {
             console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue
+            continue main
           }
           if (input[1]) {
             const pStrength = passStrength(input[1])
@@ -922,7 +972,7 @@ async function main() {
         } else if (input[0] === "archive") {
           if (input.length !== 3) {
             console.log(WARN(`Expected 2 arg(s), received ${input.length - 1}`))
-            continue
+            continue main
           }
           if (!fs.existsSync(__dirname + "/../databases/" + _NAME))
             fs.mkdirSync(__dirname + "/../databases/" + _NAME)
@@ -940,7 +990,7 @@ async function main() {
               console.log(
                 WARN(`Expected multiple arg(s), received ${input.length - 1}`)
               )
-              continue
+              continue main
             }
             if (input[2] === "file") {
               const fPath = readlineSync.questionPath("Enter file path: ", {
@@ -1097,14 +1147,14 @@ async function main() {
             console.log(
               WARN(`Expected multiple arg(s), received ${input.length - 1}`)
             )
-            continue
+            continue main
           }
           if (input[1] === "new") {
             if (input.length > 2) {
               console.log(
                 WARN(`Expected 0 arg(s), received ${input.length - 2}`)
               )
-              continue
+              continue main
             }
             let name = readlineSync.question("Enter note name: ")
             let lines = []
@@ -1130,7 +1180,7 @@ async function main() {
               console.log(
                 WARN(`Expected 1 arg(s), received ${input.length - 1}`)
               )
-              continue
+              continue main
             }
             input = parseInt(input[2]) - 1
             if (
@@ -1148,7 +1198,7 @@ async function main() {
               console.log(
                 WARN(`Expected 1 arg(s), received ${input.length - 1}`)
               )
-              continue
+              continue main
             }
             input = parseInt(input[2]) - 1
             if (
@@ -1579,6 +1629,41 @@ function printNote(note, index) {
   )
 }
 
+function parseAlias(name, command) {
+  let comms = [], store = "", argNo = 0
+  for (const i of command) {
+    if (i === " ") {
+      if (store)
+        comms.push(store)
+      store = ""
+    } else if (i === "$") {
+      if (store)
+        comms.push(store)
+      store = "$"
+      argNo++
+    } else if (store.startsWith("$")) {
+      if ("0123456789".includes(i))
+        store += i
+      else {
+        if (parseInt(store.slice(1)) !== argNo)
+          throw new Error("Unexpected argument no.")
+        comms.push(store)
+        store = ""
+      }
+    } else
+      store += i
+  }
+  if (store.startsWith("$")) {
+    if (parseInt(store.slice(1)) !== argNo)
+      throw new Error("Unexpected argument no.")
+    comms.push(store)
+    store = ""
+  }
+  if (store)
+    comms.push(store)
+  return { name: name, command: comms, argLength: argNo }
+}
+
 /*
  * Filters:
  * --name (-n): String
@@ -1666,6 +1751,7 @@ async function filterPass(filters) {
   return filtered
 }
 
+
 /*
  * Main process
  *
@@ -1675,8 +1761,11 @@ async function filterPass(filters) {
  */
 
 ;(async function () {
+  let args = process.argv.slice(2)
   _WORDS = JSON.parse(fs.readFileSync(__dirname + "/../lib/dictionary.json"))
-  if (process.argv.length === 2) {
+  if (args.length === 0 || ["--fullscreen", "-fs"].includes(args[0])) {
+    if (process.argv.length !== 2)
+      console.log("\u001b[2J")
     if (!fs.existsSync(__dirname + "/../config.json"))
       fs.writeFileSync(
         __dirname + "/../config.json",
@@ -1689,26 +1778,106 @@ async function filterPass(filters) {
     console.log("")
     console.log(`\n${OK(`Database: [ ${_NAME} ]`)}\n`)
     main()
-  } else {
-    let args = process.argv.slice(2)
-    if (args[0] === "new") {
-      if (args.length > 1) {
-        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
-        return
+  } else if (args[0] === "new") {
+    if (args.length > 1) {
+      console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
+      return
+    }
+    let config = getDatabases()
+    const newName = readlineSync.question("Enter database name: ")
+    if (is(newName, _BASENAME) && newName.length !== 0) {
+      if (!config.databases.includes(newName)) {
+        config.databases.push(newName)
+        fs.writeFileSync(
+          __dirname + "/../config.json",
+          JSON.stringify(config)
+        )
+        console.log(OK("Added new database."))
+      } else {
+        console.log(WARN("Database already exists."))
       }
-      let config = getDatabases()
-      const newName = readlineSync.question("Enter database name: ")
-      if (is(newName, _BASENAME) && newName.length !== 0) {
-        if (!config.databases.includes(newName)) {
-          config.databases.push(newName)
+    } else {
+      console.log(
+        WARN(
+          "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
+        )
+      )
+    }
+  } else if (args[0] === "list") {
+    if (args.length > 1) {
+      console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
+      return
+    }
+    let config = getDatabases()
+    for (const databaseName of config.databases) {
+      console.log(chalk.blue.bold(databaseName))
+    }
+  } else if (args[0] === "switch") {
+    if (args.length !== 2) {
+      console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
+      return
+    }
+    let config = getDatabases()
+    if (config.databases.includes(args[1])) {
+      config.selected = args[1]
+      fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
+      console.log(OK(`Switched to ${args[1]} database.`))
+    } else {
+      console.log(WARN("Database not found."))
+    }
+  } else if (args[0] === "delete") {
+    if (args.length !== 2) {
+      console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
+      return
+    }
+    let config = getDatabases()
+    if (config.databases.includes(args[1])) {
+      if (config.databases.length === 1) {
+        console.log(WARN("Can't delete last database."))
+      } else {
+        if (
+          readlineSync.question(
+            WARN(`Delete the ${args[1]} database? (yes): `)
+          ) === "yes"
+        ) {
+          if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
+            fs.unlinkSync(__dirname + "/../databases/" + args[1] + ".json")
+          config.databases.splice(config.databases.indexOf(args[1]), 1)
+          if (config.selected === args[1]) {
+            config.selected = config.databases[0]
+          }
+          console.log(OK(`Deleted ${args[1]} database.`))
           fs.writeFileSync(
             __dirname + "/../config.json",
             JSON.stringify(config)
           )
-          console.log(OK("Added new database."))
         } else {
-          console.log(WARN("Database already exists."))
+          console.log(OK("Delete aborted."))
         }
+      }
+    } else {
+      console.log(WARN("Database not found."))
+    }
+  } else if (args[0] === "rename") {
+    if (args.length !== 2) {
+      console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
+      return
+    }
+    let config = getDatabases()
+    if (config.databases.includes(args[1])) {
+      const newDBName = readlineSync.question("Enter new name: ")
+      if (is(newDBName, _BASENAME) && newDBName.length !== 0) {
+        if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
+          fs.renameSync(
+            __dirname + `/../databases/${args[1]}.json`,
+            __dirname + `/../databases/${newDBName}.json`
+          )
+        config.databases[config.databases.indexOf(args[1])] = newDBName
+        console.log(OK(`Renamed ${args[1]} to ${newDBName}.`))
+        fs.writeFileSync(
+          __dirname + "/../config.json",
+          JSON.stringify(config)
+        )
       } else {
         console.log(
           WARN(
@@ -1716,162 +1885,79 @@ async function filterPass(filters) {
           )
         )
       }
-    } else if (args[0] === "list") {
-      if (args.length > 1) {
-        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
-        return
-      }
-      let config = getDatabases()
-      for (const databaseName of config.databases) {
-        console.log(chalk.blue.bold(databaseName))
-      }
-    } else if (args[0] === "switch") {
-      if (args.length !== 2) {
-        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
-        return
-      }
-      let config = getDatabases()
-      if (config.databases.includes(args[1])) {
-        config.selected = args[1]
-        fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
-        console.log(OK(`Switched to ${args[1]} database.`))
-      } else {
-        console.log(WARN("Database not found."))
-      }
-    } else if (args[0] === "delete") {
-      if (args.length !== 2) {
-        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
-        return
-      }
-      let config = getDatabases()
-      if (config.databases.includes(args[1])) {
-        if (config.databases.length === 1) {
-          console.log(WARN("Can't delete last database."))
-        } else {
-          if (
-            readlineSync.question(
-              WARN(`Delete the ${args[1]} database? (yes): `)
-            ) === "yes"
-          ) {
-            if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
-              fs.unlinkSync(__dirname + "/../databases/" + args[1] + ".json")
-            config.databases.splice(config.databases.indexOf(args[1]), 1)
-            if (config.selected === args[1]) {
-              config.selected = config.databases[0]
-            }
-            console.log(OK(`Deleted ${args[1]} database.`))
-            fs.writeFileSync(
-              __dirname + "/../config.json",
-              JSON.stringify(config)
-            )
-          } else {
-            console.log(OK("Delete aborted."))
-          }
-        }
-      } else {
-        console.log(WARN("Database not found."))
-      }
-    } else if (args[0] === "rename") {
-      if (args.length !== 2) {
-        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
-        return
-      }
-      let config = getDatabases()
-      if (config.databases.includes(args[1])) {
-        const newDBName = readlineSync.question("Enter new name: ")
-        if (is(newDBName, _BASENAME) && newDBName.length !== 0) {
-          if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
-            fs.renameSync(
-              __dirname + `/../databases/${args[1]}.json`,
-              __dirname + `/../databases/${newDBName}.json`
-            )
-          config.databases[config.databases.indexOf(args[1])] = newDBName
-          console.log(OK(`Renamed ${args[1]} to ${newDBName}.`))
-          fs.writeFileSync(
-            __dirname + "/../config.json",
-            JSON.stringify(config)
-          )
-        } else {
-          console.log(
-            WARN(
-              "Illegal database name. Database names can contain characters A-Z, a-z, 0-9, -, _, ., and ,. They also should have a length between 1-100."
-            )
-          )
-        }
-      } else {
-        console.log(WARN("Database not found."))
-      }
-    } else if (args[0] === "current") {
-      if (args.length > 1) {
-        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
-        return
-      }
-      console.log(chalk.blue.bold(getDatabases().selected))
-    } else if (args[0] === "version") {
-      if (args.length > 1) {
-        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
-        return
-      }
-      const data = fs.readFileSync(__dirname + "/../package.json")
-      try {
-        console.log("v" + (JSON.parse(data).version || "0.0.0"))
-      } catch (err) {
-        console.log(
-          WARN("[FATAL] The package.json has been corrupted. Invalid JSON. ") +
-            err
-        )
-      }
-    } else if (args[0] === "license") {
-      if (args.length > 1) {
-        console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
-        return
-      }
-      console.log(
-        `\n${chalk.bold("Permissions:")}\n${OK(
-          "* Commercial use\n* Distribution\n* Modification\n* Private use"
-        )}\n\n${chalk.bold("Conditions:")}\n${chalk.cyan.bold(
-          "* License and copyright notice"
-        )}\n\n${chalk.bold("Limitations:")}\n${WARN(
-          "* Liability\n* Warranty"
-        )}\n`
-      )
-      console.log(
-        chalk.whiteBright(fs.readFileSync(`${__dirname}/../LICENSE`).toString())
-      )
-    } else if (args[0] === "make") {
-      if (args.length > 2) {
-        console.log(WARN(`Expected 0-1 arg(s), received ${args.length - 1}`))
-        return
-      }
-      let wordy
-      if (args[1] === "--wordy" || args[1] === "-w") wordy = true
-      else wordy = false
-      const newPass = generatePassword(wordy)
-      console.log(chalk.cyan.bold(newPass))
-      console.log(passStrength(newPass).score + (await timesPwned(newPass)))
-    } else if (args[0] === "strength") {
-      if (args.length !== 2) {
-        console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
-        return
-      }
-      if (args[1]) {
-        const pStrength = passStrength(args[1])
-        console.log(
-          `${pStrength.score}${await timesPwned(
-            args[1]
-          )} \nTime required to break password: ${pStrength.time}`
-        )
-        if (pStrength.feedback.warning)
-          console.log(WARN(`Warning: ${pStrength.feedback.warning}`))
-        if (pStrength.feedback.suggestions.length !== 0)
-          console.log(
-            OK(`Suggestions: ${pStrength.feedback.suggestions.join(", ")}`)
-          )
-      } else {
-        console.log(WARN("Please enter a password."))
-      }
     } else {
-      console.log(WARN("Invalid argument."))
+      console.log(WARN("Database not found."))
     }
+  } else if (args[0] === "current") {
+    if (args.length > 1) {
+      console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
+      return
+    }
+    console.log(chalk.blue.bold(getDatabases().selected))
+  } else if (args[0] === "version") {
+    if (args.length > 1) {
+      console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
+      return
+    }
+    const data = fs.readFileSync(__dirname + "/../package.json")
+    try {
+      console.log("v" + (JSON.parse(data).version || "0.0.0"))
+    } catch (err) {
+      console.log(
+        WARN("[FATAL] The package.json has been corrupted. Invalid JSON. ") +
+          err
+      )
+    }
+  } else if (args[0] === "license") {
+    if (args.length > 1) {
+      console.log(WARN(`Expected 0 arg(s), received ${args.length - 1}`))
+      return
+    }
+    console.log(
+      `\n${chalk.bold("Permissions:")}\n${OK(
+        "* Commercial use\n* Distribution\n* Modification\n* Private use"
+      )}\n\n${chalk.bold("Conditions:")}\n${chalk.cyan.bold(
+        "* License and copyright notice"
+      )}\n\n${chalk.bold("Limitations:")}\n${WARN(
+        "* Liability\n* Warranty"
+      )}\n`
+    )
+    console.log(
+      chalk.whiteBright(fs.readFileSync(`${__dirname}/../LICENSE`).toString())
+    )
+  } else if (args[0] === "make") {
+    if (args.length > 2) {
+      console.log(WARN(`Expected 0-1 arg(s), received ${args.length - 1}`))
+      return
+    }
+    let wordy
+    if (args[1] === "--wordy" || args[1] === "-w") wordy = true
+    else wordy = false
+    const newPass = generatePassword(wordy)
+    console.log(chalk.cyan.bold(newPass))
+    console.log(passStrength(newPass).score + (await timesPwned(newPass)))
+  } else if (args[0] === "strength") {
+    if (args.length !== 2) {
+      console.log(WARN(`Expected 1 arg(s), received ${args.length - 1}`))
+      return
+    }
+    if (args[1]) {
+      const pStrength = passStrength(args[1])
+      console.log(
+        `${pStrength.score}${await timesPwned(
+          args[1]
+        )} \nTime required to break password: ${pStrength.time}`
+      )
+      if (pStrength.feedback.warning)
+        console.log(WARN(`Warning: ${pStrength.feedback.warning}`))
+      if (pStrength.feedback.suggestions.length !== 0)
+        console.log(
+          OK(`Suggestions: ${pStrength.feedback.suggestions.join(", ")}`)
+        )
+    } else {
+      console.log(WARN("Please enter a password."))
+    }
+  } else {
+    console.log(WARN("Invalid argument."))
   }
 })()
