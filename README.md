@@ -11,7 +11,7 @@
 ![commit](https://img.shields.io/github/last-commit/Mkorp-Official/Krypt)
 ![release](https://img.shields.io/github/release-date/Mkorp-Official/Krypt)
 
-A smart, secure and minimalistic password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
+A smart, secure, and feature-rich terminal password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
 
 [Docs Here](https://github.com/Mkorp-Official/Krypt/wiki)
 
@@ -19,25 +19,25 @@ A smart, secure and minimalistic password manager. Krypt uses all the latest enc
 
 Clone the repo:
 
-```
+```bash
 git clone https://github.com/Mkorp-Official/Krypt.git
 ```
 
 Change your directory:
 
-```
+```bash
 cd path/to/krypt
 ```
 
 Install the script:
 
-```
+```bash
 npm install -global
 ```
 
 Start the process:
 
-```
+```bash
 krypt
 ```
 
