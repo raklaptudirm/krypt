@@ -79,7 +79,7 @@ const _DATA_TEMPLATE = {
           use: "Clear the console and run Krypt.",
           alias: "-fs",
           value: "void",
-        }
+        },
       },
       new: {
         format: "krypt new",
@@ -354,10 +354,9 @@ let _DATABASE,
  */
 
 async function main() {
-
   /*
-  * Main process local functions
-  */
+   * Main process local functions
+   */
 
   function login() {
     _MAST = readlineSync.question("PASSWORD: ", { hideEchoBack: true })
@@ -370,19 +369,20 @@ async function main() {
         }),
         _DATABASE.salt.TwoFA
       )
-    if (_DATABASE.checksum.checksum ===
-          crypto.PBKDF2_HASH(_KEY, _DATABASE.checksum.salt) &&
-        (!_DATABASE.settings.TwoFA.on ||
-          _DATABASE.settings.TwoFA.answer.checksum ===
-            crypto.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt)))
+    if (
+      _DATABASE.checksum.checksum ===
+        crypto.PBKDF2_HASH(_KEY, _DATABASE.checksum.salt) &&
+      (!_DATABASE.settings.TwoFA.on ||
+        _DATABASE.settings.TwoFA.answer.checksum ===
+          crypto.PBKDF2_HASH(_2F, _DATABASE.settings.TwoFA.answer.salt))
+    )
       return true
     return false
   }
 
   function hideLogin() {
     console.log()
-    if (_DATABASE.settings.TwoFA.on)
-      console.log("\u001b[4A\u001b[0G\u001b[0J")
+    if (_DATABASE.settings.TwoFA.on) console.log("\u001b[4A\u001b[0G\u001b[0J")
     else console.log("\u001b[3A\u001b[0G\u001b[0J")
     console.log(OK("Logged in."))
   }
@@ -652,7 +652,7 @@ async function main() {
               .forEach(item => {
                 console.log(`  ${chalk.bold(item)}: ${manual[item].use}`)
               })
-              console.log()
+            console.log()
             if (manual.flags !== undefined) {
               console.log(chalk.bold(`Flags:`))
               Object.keys(manual.flags).forEach(item => {
@@ -838,19 +838,20 @@ async function main() {
               const alias = readlineSync.question("Enter alias name: ")
               let isNotAlias = true
               for (const i of _DATABASE.settings.alias) {
-                if (i.name === alias){
+                if (i.name === alias) {
                   isNotAlias = false
                   break
                 }
               }
-              if ( isNotAlias &&
-                isNotCommand(alias)
-              ) {
+              if (isNotAlias && isNotCommand(alias)) {
                 if (is(alias, _BASENAME)) {
                   try {
-                    _DATABASE.settings.alias.push(parseAlias(alias, readlineSync.question(
-                      "Enter alias command: "
-                    )))
+                    _DATABASE.settings.alias.push(
+                      parseAlias(
+                        alias,
+                        readlineSync.question("Enter alias command: ")
+                      )
+                    )
                   } catch (err) {
                     console.log(WARN(err))
                     continue main
@@ -877,7 +878,6 @@ async function main() {
                     i.name = alias
                     console.log(OK("Alias renamed successfully."))
                     reEncryptData()
-
                   } else {
                     console.log(WARN("Illegal alias name."))
                   }
@@ -911,7 +911,8 @@ async function main() {
               console.log("")
               for (const i of _DATABASE.settings.alias) {
                 console.log(
-                  `[${chalk.bold(i.name)}] ${chalk.yellow.bold(i.command.join(" ")
+                  `[${chalk.bold(i.name)}] ${chalk.yellow.bold(
+                    i.command.join(" ")
                   )}`
                 )
               }
@@ -1630,28 +1631,26 @@ function printNote(note, index) {
 }
 
 function parseAlias(name, command) {
-  let comms = [], store = "", argNo = 0
+  let comms = [],
+    store = "",
+    argNo = 0
   for (const i of command) {
     if (i === " ") {
-      if (store)
-        comms.push(store)
+      if (store) comms.push(store)
       store = ""
     } else if (i === "$") {
-      if (store)
-        comms.push(store)
+      if (store) comms.push(store)
       store = "$"
       argNo++
     } else if (store.startsWith("$")) {
-      if ("0123456789".includes(i))
-        store += i
+      if ("0123456789".includes(i)) store += i
       else {
         if (parseInt(store.slice(1)) !== argNo)
           throw new Error("Unexpected argument no.")
         comms.push(store)
         store = ""
       }
-    } else
-      store += i
+    } else store += i
   }
   if (store.startsWith("$")) {
     if (parseInt(store.slice(1)) !== argNo)
@@ -1659,8 +1658,7 @@ function parseAlias(name, command) {
     comms.push(store)
     store = ""
   }
-  if (store)
-    comms.push(store)
+  if (store) comms.push(store)
   return { name: name, command: comms, argLength: argNo }
 }
 
@@ -1751,7 +1749,6 @@ async function filterPass(filters) {
   return filtered
 }
 
-
 /*
  * Main process
  *
@@ -1764,8 +1761,7 @@ async function filterPass(filters) {
   let args = process.argv.slice(2)
   _WORDS = JSON.parse(fs.readFileSync(__dirname + "/../lib/dictionary.json"))
   if (args.length === 0 || ["--fullscreen", "-fs"].includes(args[0])) {
-    if (process.argv.length !== 2)
-      console.log("\u001b[2J")
+    if (process.argv.length !== 2) console.log("\u001b[2J")
     if (!fs.existsSync(__dirname + "/../config.json"))
       fs.writeFileSync(
         __dirname + "/../config.json",
@@ -1788,10 +1784,7 @@ async function filterPass(filters) {
     if (is(newName, _BASENAME) && newName.length !== 0) {
       if (!config.databases.includes(newName)) {
         config.databases.push(newName)
-        fs.writeFileSync(
-          __dirname + "/../config.json",
-          JSON.stringify(config)
-        )
+        fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
         console.log(OK("Added new database."))
       } else {
         console.log(WARN("Database already exists."))
@@ -1874,10 +1867,7 @@ async function filterPass(filters) {
           )
         config.databases[config.databases.indexOf(args[1])] = newDBName
         console.log(OK(`Renamed ${args[1]} to ${newDBName}.`))
-        fs.writeFileSync(
-          __dirname + "/../config.json",
-          JSON.stringify(config)
-        )
+        fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config))
       } else {
         console.log(
           WARN(
@@ -1918,9 +1908,7 @@ async function filterPass(filters) {
         "* Commercial use\n* Distribution\n* Modification\n* Private use"
       )}\n\n${chalk.bold("Conditions:")}\n${chalk.cyan.bold(
         "* License and copyright notice"
-      )}\n\n${chalk.bold("Limitations:")}\n${WARN(
-        "* Liability\n* Warranty"
-      )}\n`
+      )}\n\n${chalk.bold("Limitations:")}\n${WARN("* Liability\n* Warranty")}\n`
     )
     console.log(
       chalk.whiteBright(fs.readFileSync(`${__dirname}/../LICENSE`).toString())

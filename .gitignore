@@ -6,3 +6,4 @@ databases/
 node_modules/
 bin/test.js
 bin/at
+commit.sh
