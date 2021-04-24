@@ -5,3 +5,4 @@ config.json
 databases/
 node_modules/
 bin/test.js
+bin/at
