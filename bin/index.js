@@ -129,14 +129,6 @@ const _DATA_TEMPLATE = {
         use: "Prints the active database.",
       },
     },
-    new: {
-      format: "new",
-      use: "Create a new password.",
-    },
-    delete: {
-      format: "delete <pass_id>",
-      use: "Delete an existing password.",
-    },
     change: {
       format: "change",
       use: "Change the master password.",
@@ -152,103 +144,118 @@ const _DATA_TEMPLATE = {
         },
       },
     },
-    get: {
-      format: "get <entry_id>",
-      use: "Get a password entry.",
-      flags: {
-        leaked: {
-          use: "Filter the leaked passwords.",
-          alias: "-l",
-          value: "void",
-        },
-        strength: {
-          use:
-            "Filter passwords of the given strength.\n    Values:\n    0 or very-weak\n    1 or weak\n    2 or medium\n    3 or strong\n    4 or very-strong",
-          alias: "-s",
-          value: "Integer",
-        },
-        name: {
-          use: "Filter passwords with the given name.",
-          alias: "-n",
-          value: "String",
-        },
-        username: {
-          use: "Filter passwords with the given username.",
-          alias: "-u",
-          value: "String",
-        },
-        clear_text: {
-          use: "Print the passwords in clear-text",
-          alias: "-clt",
-          value: "void",
+    password: {
+      new: {
+        format: "new",
+        use: "Create a new password.",
+      },
+      delete: {
+        format: "delete <pass_id>",
+        use: "Delete an existing password.",
+      },
+      get: {
+        format: "get <entry_id>",
+        use: "Get a password entry.",
+        flags: {
+          leaked: {
+            use: "Filter the leaked passwords.",
+            alias: "-l",
+            value: "void",
+          },
+          strength: {
+            use:
+              "Filter passwords of the given strength.\n    Values:\n    0 or very-weak\n    1 or weak\n    2 or medium\n    3 or strong\n    4 or very-strong",
+            alias: "-s",
+            value: "Integer",
+          },
+          name: {
+            use: "Filter passwords with the given name.",
+            alias: "-n",
+            value: "String",
+          },
+          username: {
+            use: "Filter passwords with the given username.",
+            alias: "-u",
+            value: "String",
+          },
+          clear_text: {
+            use: "Print the passwords in clear-text",
+            alias: "-clt",
+            value: "void",
+          },
         },
       },
-    },
-    secure: {
-      format: "secure",
-      use: "Get security advise related to your passwords.",
-      weak: {
-        format: "secure weak",
-        use: "Get a list of saved passwords that are weak.",
-      },
-      leaked: {
-        format: "secure leaked",
-        use: "Get a list of saved passwords that have been leaked.",
-      },
-      dups: {
-        format: "secure dups",
-        use: "Get a list of saved passwords which are duplicates.",
-      },
-    },
-    make: {
-      format: "make",
-      use: "Generate a strong password based on settings.",
-      flags: {
-        wordy: {
-          use: "Generate a wordy password.",
-          alias: "-w",
-          value: "Boolean",
+      secure: {
+        format: "secure",
+        use: "Get security advise related to your passwords.",
+        flags: {
+          weak: {
+            use: "Get a list of saved passwords that are weak.",
+            alias: "-w",
+            value: "void",
+          },
+          leaked: {
+            use: "Get a list of saved passwords that have been leaked.",
+            alias: "-l",
+            value: "void",
+          },
+          duplicates: {
+            use: "Get a list of saved passwords which are duplicates.",
+            alias: "-dps",
+            value: "void",
+          },
         },
       },
-    },
-    strength: {
-      format: "strength <password>",
-      use: "Gives the strength of the given password.",
+      make: {
+        format: "make",
+        use: "Generate a strong password based on settings.",
+        flags: {
+          wordy: {
+            use: "Generate a wordy password.",
+            alias: "-w",
+            value: "Boolean",
+          },
+        },
+      },
+      strength: {
+        format: "strength <password>",
+        use: "Gives the strength of the given password.",
+      },
+      edit: {
+        format: "edit <pass_id>",
+        use: "Edit a stored password.",
+      },
+      copy: {
+        format: "copy <pass_id>",
+        use: "Copy a password to the clipboard.",
+        flags: {
+          leaked: {
+            use: "Filter the leaked passwords.",
+            alias: "-l",
+            value: "void",
+          },
+          strength: {
+            use:
+              "Filter passwords of the given strength.\n    Values:\n    0 or very-weak\n    1 or weak\n    2 or medium\n    3 or strong\n    4 or very-strong",
+            alias: "-s",
+            value: "Integer",
+          },
+          name: {
+            use: "Filter passwords with the given name.",
+            alias: "-n",
+            value: "String",
+          },
+          username: {
+            use: "Filter passwords with the given username.",
+            alias: "-u",
+            value: "String",
+          },
+        },
+      },
     },
     help: {
       format: "help <command>",
       use: "Gives the uses and use example of a command.",
-    },
-    edit: {
-      format: "edit <pass_id>",
-      use: "Edit a stored password.",
-    },
-    copy: {
-      format: "copy <pass_id>",
-      use: "Copy a password to the clipboard.",
-      flags: {
-        leaked: {
-          use: "Filter the leaked passwords.",
-          alias: "-l",
-          value: "void",
-        },
-        strength: {
-          use:
-            "Filter passwords of the given strength.\n    Values:\n    0 or very-weak\n    1 or weak\n    2 or medium\n    3 or strong\n    4 or very-strong",
-          alias: "-s",
-          value: "Integer",
-        },
-        name: {
-          use: "Filter passwords with the given name.",
-          alias: "-n",
-          value: "String",
-        },
-        username: {
-          use: "Filter passwords with the given username.",
-          alias: "-u",
-          value: "String",
-        },
-      },
     },
     archive: {
       use: "Archive command package to archive files and directories.",
@@ -414,6 +421,7 @@ async function main() {
       loadData()
       main: while (true) {
         let input = parseInput()
+        console.log()
         if (input[0] === "exit") {
           if (input.length > 2) {
             console.log(
@@ -440,179 +448,267 @@ async function main() {
           _KEY = _KEY.checksum
           _DATABASE.checksum = crypto.PBKDF2_HASH(_KEY)
           reEncryptData()
-        } else if (input[0] === "new") {
-          if (input.length > 1) {
-            console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
-            continue main
-          }
-          const name_ = readlineSync.question("Password Name: ")
-          const username_ = readlineSync.question("Username: ")
-          const password_ =
-            readlineSync.question("Password (leave empty to generate): ", {
-              hideEchoBack: true,
-            }) || generatePassword()
-          _PASSWORDS.push(createPass(name_, username_, password_))
-          console.log(
-            OK(`Sucessfully added password at ID:${_PASSWORDS.length}.`)
-          )
-          reEncryptData()
-        } else if (input[0] === "get") {
-          let print,
-            clear = false
-          input = input.slice(1)
-          if (input.includes("--clear-text")) {
-            input.splice(input.indexOf("--clear-text"), 1)
-            clear = true
-          } else if (input.includes("-clt")) {
-            input.splice(input.indexOf("-clt"), 1)
-            clear = true
-          }
-          try {
-            print = await filterPass(input)
-          } catch (e) {
-            console.log(e.message)
-            continue main
-          }
-          if (print.length === 0)
-            console.log(WARN("No passwords match the criteria."))
-          else {
-            if (clear)
-              for (const i of print) console.log(_PASSWORDS[i].password)
-            else for (const i of print) printPass(_PASSWORDS[i], i + 1)
-          }
-        } else if (input[0] === "delete") {
-          if (input.length !== 2) {
-            console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue main
-          }
-          input = parseInt(input[1]) - 1
-          if (
-            input === undefined ||
-            Number.isNaN(input) ||
-            input < 0 ||
-            input >= _PASSWORDS.length
-          ) {
-            console.log(WARN("ID out of bounds."))
-            continue main
-          }
-          printPass(_PASSWORDS[input], input)
-          const sel = readlineSync.question(WARN("Delete this entry? (yes): "))
-          if (sel !== "yes") {
-            console.log(OK("Delete aborted."))
-            continue main
-          }
-          _PASSWORDS.splice(input, 1)
-          console.log(OK("Password deleted Successfully."))
-          reEncryptData()
-        } else if (input[0] === "secure") {
-          if (input.length > 2) {
-            console.log(
-              WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
-            )
-            continue main
-          }
-          const [Sweaks, Pweaks, Duplicates] = await getWeaks()
-          if (input[1] === undefined) {
-            if (Sweaks.length > 0) {
+        } else if (input[0] === "password") {
+          input.splice(0, 1)
+          if (input[0] === "delete") {
+            if (input.length !== 2) {
               console.log(
-                WARN(`✗ Some of your passwords are weak. `) +
-                  CODE("secure weak") +
-                  WARN(` for more information.`)
+                WARN(`Expected 1 arg(s), received ${input.length - 1}`)
               )
-            } else {
-              console.log(OK("✓ All of the passwords are strong."))
+              continue main
             }
-            if (Array.isArray(Pweaks)) {
-              if (Pweaks.length > 0) {
+            input = parseInt(input[1]) - 1
+            if (
+              input === undefined ||
+              Number.isNaN(input) ||
+              input < 0 ||
+              input >= _PASSWORDS.length
+            ) {
+              console.log(WARN("ID out of bounds."))
+              continue main
+            }
+            printPass(_PASSWORDS[input], input)
+            const sel = readlineSync.question(
+              WARN("Delete this entry? (yes): ")
+            )
+            if (sel !== "yes") {
+              console.log(OK("Delete aborted."))
+              continue main
+            }
+            _PASSWORDS.splice(input, 1)
+            console.log(OK("Password deleted Successfully."))
+            reEncryptData()
+          } else if (input[0] === "secure") {
+            if (input.length > 2) {
+              console.log(
+                WARN(`Expected 0-1 arg(s), received ${input.length - 1}`)
+              )
+              continue main
+            }
+            const [Sweaks, Pweaks, Duplicates] = await getWeaks()
+            if (input[1] === undefined) {
+              if (Sweaks.length > 0) {
                 console.log(
-                  WARN(`✗ Some of your passwords are leaked. `) +
-                    CODE("secure leaked") +
+                  WARN(`✗ Some of your passwords are weak. `) +
+                    CODE("secure --weak") +
                     WARN(` for more information.`)
                 )
               } else {
-                console.log(OK("✓ None of the passwords are leaked."))
+                console.log(OK("✓ All of the passwords are strong."))
               }
-            } else {
-              console.log(Pweaks)
-            }
-            if (Duplicates.length > 0) {
-              console.log(
-                WARN(`✗ Some of your passwords are duplicates. `) +
-                  CODE("secure dups") +
-                  WARN(` for more information.`)
-              )
-            } else {
-              console.log(OK("✓ All of the passwords are unique."))
-            }
-            if (passStrength(_MAST).score !== OK("[VERY STRONG]")) {
-              console.log(WARN("✗ Your master password is weak."))
-            } else if (await pwnedPassword(_MAST)) {
-              console.log(WARN("✗ Your master password has been leaked."))
-            } else {
-              console.log(OK("✓ Your master password is strong."))
-            }
-            if (_DATABASE.settings.TwoFA.on) {
-              console.log(OK("✓ 2-Factor Auth is enabled."))
-            } else {
-              console.log(WARN("✗ 2-Factor Auth is disabled."))
-            }
-          } else if (input[1] === "weak") {
-            if (Sweaks.length > 0) {
-              for (const i in Sweaks) {
-                console.log("")
-                printPass(_PASSWORDS[i], parseInt(i))
-              }
-            } else {
-              console.log(OK("All of the passwords are strong."))
-            }
-          } else if (input[1] === "leaked") {
-            if (Pweaks.length > 0) {
-              for (const i in Pweaks) {
-                console.log("")
-                printPass(_PASSWORDS[i], parseInt(i))
-                console.log(await timesPwned(_PASSWORDS[i].password))
-              }
-            } else {
-              console.log(OK("None of the passwords are leaked."))
-            }
-          } else if (input[1] === "dups") {
-            if (Duplicates.length > 0) {
-              for (const i of Duplicates) {
-                console.log(
-                  WARN(
-                    `Passwords with ids ${i.join(", ")} have the same password.`
+              if (Array.isArray(Pweaks)) {
+                if (Pweaks.length > 0) {
+                  console.log(
+                    WARN(`✗ Some of your passwords are leaked. `) +
+                      CODE("secure --leaked") +
+                      WARN(` for more information.`)
                   )
+                } else {
+                  console.log(OK("✓ None of the passwords are leaked."))
+                }
+              } else {
+                console.log(Pweaks)
+              }
+              if (Duplicates.length > 0) {
+                console.log(
+                  WARN(`✗ Some of your passwords are duplicates. `) +
+                    CODE("secure --duplicates") +
+                    WARN(` for more information.`)
                 )
+              } else {
+                console.log(OK("✓ All of the passwords are unique."))
+              }
+              if (passStrength(_MAST).score !== OK("[VERY STRONG]")) {
+                console.log(WARN("✗ Your master password is weak."))
+              } else if (await pwnedPassword(_MAST)) {
+                console.log(WARN("✗ Your master password has been leaked."))
+              } else {
+                console.log(OK("✓ Your master password is strong."))
+              }
+              if (_DATABASE.settings.TwoFA.on) {
+                console.log(OK("✓ 2-Factor Auth is enabled."))
+              } else {
+                console.log(WARN("✗ 2-Factor Auth is disabled."))
+              }
+            } else if (["--weak", "-w"].includes(input[1])) {
+              if (Sweaks.length > 0) {
+                for (const i in Sweaks) printPass(_PASSWORDS[i], parseInt(i))
+              } else {
+                console.log(OK("All of the passwords are strong."))
+              }
+            } else if (["--leaked", "-l"].includes(input[1])) {
+              if (!Array.isArray(Pweaks)) {
+                console.log(WARN("[No Internet]"))
+                continue main
+              }
+              if (Pweaks.length > 0) {
+                for (const i in Pweaks) {
+                  printPass(_PASSWORDS[i], parseInt(i))
+                  console.log(await timesPwned(_PASSWORDS[i].password))
+                }
+              } else {
+                console.log(OK("None of the passwords are leaked."))
+              }
+            } else if (["--duplicates", "-dps"].includes(input[1])) {
+              if (Duplicates.length > 0) {
+                for (const i of Duplicates) {
+                  console.log(
+                    WARN(
+                      `Passwords with ids ${i.join(
+                        ", "
+                      )} have the same password.`
+                    )
+                  )
+                }
+              } else {
+                console.log(OK("All of the passwords are unique."))
               }
             } else {
-              console.log(OK("All of the passwords are unique."))
+              console.log(WARN("Invalid argument."))
             }
-          } else {
-            console.log(WARN("Invalid argument."))
-          }
-        } else if (input[0] === "make") {
-          if (input.length > 3) {
-            console.log(
-              WARN(`Expected 0-2 arg(s), received ${input.length - 1}`)
-            )
-            continue main
-          }
-          let type
-          if (input[1] === undefined) type = _DATABASE.settings.passwordWordy
-          else if (input[1] === "--wordy" || input[1] === "-w") {
-            if (input[2] === "true") type = true
-            else if (input[2] === "false") type = false
-            else {
+          } else if (input[0] === "make") {
+            if (input.length > 3) {
+              console.log(
+                WARN(`Expected 0-2 arg(s), received ${input.length - 1}`)
+              )
+              continue main
+            }
+            let type
+            if (input[1] === undefined) type = _DATABASE.settings.passwordWordy
+            else if (input[1] === "--wordy" || input[1] === "-w") {
+              if (input[2] === "true") type = true
+              else if (input[2] === "false") type = false
+              else {
+                console.log(WARN("Invalid argument."))
+                continue main
+              }
+            } else {
               console.log(WARN("Invalid argument."))
               continue main
             }
+            const newPass = generatePassword(type)
+            console.log(chalk.cyan.bold(newPass))
+            console.log(
+              passStrength(newPass).score + (await timesPwned(newPass))
+            )
+          } else if (input[0] === "edit") {
+            if (input.length !== 2) {
+              console.log(
+                WARN(`Expected 1 arg(s), received ${input.length - 1}`)
+              )
+              continue main
+            }
+            input = parseInt(input[1]) - 1
+            if (
+              input === undefined ||
+              Number.isNaN(input) ||
+              input < 0 ||
+              input >= _PASSWORDS.length
+            ) {
+              console.log(WARN("ID out of bounds."))
+              continue main
+            }
+            const name_ = readlineSync.question(
+              "Password Name (leave empty to keep same): "
+            )
+            const username_ = readlineSync.question(
+              "Username (leave empty to keep same): "
+            )
+            const password_ =
+              readlineSync.question("Password (leave empty to generate): ", {
+                hideEchoBack: true,
+              }) || generatePassword()
+            _PASSWORDS[input] = createPass(
+              name_ || _PASSWORDS[input].name,
+              username_ || _PASSWORDS[input].username,
+              password_
+            )
+            console.log(OK("Successfully edited password."))
+            reEncryptData()
+          } else if (input[0] === "copy") {
+            if (input.length < 2) {
+              console.log(
+                WARN(`Expected multiple arg(s), received ${input.length - 1}`)
+              )
+              continue main
+            }
+            let matches = await filterPass(input.slice(1))
+            if (matches.length) {
+              clipboardy.writeSync(_PASSWORDS[matches[0]].password)
+              console.log(OK("Password copied to clipboard."))
+            } else {
+              console.log(WARN("No matches found."))
+            }
+          } else if (input[0] === "strength") {
+            if (input.length !== 2) {
+              console.log(
+                WARN(`Expected 1 arg(s), received ${input.length - 1}`)
+              )
+              continue main
+            }
+            if (input[1]) {
+              const pStrength = passStrength(input[1])
+              console.log(
+                `${pStrength.score}${await timesPwned(
+                  input[1]
+                )} \nTime required to break password: ${pStrength.time}`
+              )
+              if (pStrength.feedback.warning)
+                console.log(WARN(`Warning: ${pStrength.feedback.warning}`))
+              if (pStrength.feedback.suggestions.length !== 0)
+                console.log(
+                  OK(
+                    `Suggestions: ${pStrength.feedback.suggestions.join(", ")}`
+                  )
+                )
+            } else {
+              console.log(WARN("Please enter a password."))
+            }
+          } else if (input[0] === "new") {
+            if (input.length > 1) {
+              console.log(
+                WARN(`Expected 0 arg(s), received ${input.length - 1}`)
+              )
+              continue main
+            }
+            const name_ = readlineSync.question("Password Name: ")
+            const username_ = readlineSync.question("Username: ")
+            const password_ =
+              readlineSync.question("Password (leave empty to generate): ", {
+                hideEchoBack: true,
+              }) || generatePassword()
+            _PASSWORDS.push(createPass(name_, username_, password_))
+            console.log(
+              OK(`Sucessfully added password at ID:${_PASSWORDS.length}.`)
+            )
+            reEncryptData()
+          } else if (input[0] === "get") {
+            let print,
+              clear = false
+            input = input.slice(1)
+            if (input.includes("--clear-text")) {
+              input.splice(input.indexOf("--clear-text"), 1)
+              clear = true
+            } else if (input.includes("-clt")) {
+              input.splice(input.indexOf("-clt"), 1)
+              clear = true
+            }
+            try {
+              print = await filterPass(input)
+            } catch (e) {
+              console.log(e.message)
+              continue main
+            }
+            if (print.length === 0)
+              console.log(WARN("No passwords match the criteria."))
+            else {
+              if (clear)
+                for (const i of print) console.log(_PASSWORDS[i].password)
+              else for (const i of print) printPass(_PASSWORDS[i], i + 1)
+            }
           } else {
-            console.log(WARN("Invalid argument."))
-            continue main
+            console.log(WARN("Invalid subcommand for Password."))
           }
-          const newPass = generatePassword(type)
-          console.log(chalk.cyan.bold(newPass))
-          console.log(passStrength(newPass).score + (await timesPwned(newPass)))
         } else if (input[0] === "help") {
           if (input.length < 2) {
             console.log(
@@ -666,38 +762,6 @@ async function main() {
               })
             }
           }
-        } else if (input[0] === "edit") {
-          if (input.length !== 2) {
-            console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue main
-          }
-          input = parseInt(input[1]) - 1
-          if (
-            input === undefined ||
-            Number.isNaN(input) ||
-            input < 0 ||
-            input >= _PASSWORDS.length
-          ) {
-            console.log(WARN("ID out of bounds."))
-            continue main
-          }
-          const name_ = readlineSync.question(
-            "Password Name (leave empty to keep same): "
-          )
-          const username_ = readlineSync.question(
-            "Username (leave empty to keep same): "
-          )
-          const password_ =
-            readlineSync.question("Password (leave empty to generate): ", {
-              hideEchoBack: true,
-            }) || generatePassword()
-          _PASSWORDS[input] = createPass(
-            name_ || _PASSWORDS[input].name,
-            username_ || _PASSWORDS[input].username,
-            password_
-          )
-          console.log(OK("Successfully edited password."))
-          reEncryptData()
         } else if (input[0] === "set") {
           if (input.length < 2) {
             console.log(
@@ -934,41 +998,6 @@ async function main() {
             else console.log(OK("Disabled wordy password."))
           } else {
             console.log(WARN("Setting not found."))
-          }
-        } else if (input[0] === "copy") {
-          if (input.length < 2) {
-            console.log(
-              WARN(`Expected multiple arg(s), received ${input.length - 1}`)
-            )
-            continue main
-          }
-          let matches = await filterPass(input.slice(1))
-          if (matches.length) {
-            clipboardy.writeSync(_PASSWORDS[matches[0]].password)
-            console.log(OK("Password copied to clipboard."))
-          } else {
-            console.log(WARN("No matches found."))
-          }
-        } else if (input[0] === "strength") {
-          if (input.length !== 2) {
-            console.log(WARN(`Expected 1 arg(s), received ${input.length - 1}`))
-            continue main
-          }
-          if (input[1]) {
-            const pStrength = passStrength(input[1])
-            console.log(
-              `${pStrength.score}${await timesPwned(
-                input[1]
-              )} \nTime required to break password: ${pStrength.time}`
-            )
-            if (pStrength.feedback.warning)
-              console.log(WARN(`Warning: ${pStrength.feedback.warning}`))
-            if (pStrength.feedback.suggestions.length !== 0)
-              console.log(
-                OK(`Suggestions: ${pStrength.feedback.suggestions.join(", ")}`)
-              )
-          } else {
-            console.log(WARN("Please enter a password."))
           }
         } else if (input[0] === "archive") {
           if (input.length !== 3) {
@@ -1717,7 +1746,12 @@ async function filterPass(filters) {
           break
         case "--leaked":
         case "-l":
-          if (!(await pwnedPassword(_PASSWORDS[i].password))) prev = true
+          try {
+            const pwnedT = await pwnedPassword(_PASSWORDS[i].password)
+          } catch (e) {
+            throw new Error(WARN("[No Internet]"))
+          }
+          if (!pwnedT) prev = true
           break
         case "--strength":
         case "-s":
