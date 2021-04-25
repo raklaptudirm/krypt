@@ -15,6 +15,7 @@ const { pwnedPassword } = require("hibp")
 const fs = require("fs")
 const crypto = require("../lib/crypto.js")
 const readlineSync = require("readline-sync")
+const read = require("../lib/read.js")
 const chalk = require("chalk")
 const clipboardy = require("clipboardy")
 const style = require("ansi-styles")
@@ -394,9 +395,22 @@ async function main() {
     console.log(OK("Logged in."))
   }
 
-  function parseInput() {
+  async function parseInput() {
     console.log("")
-    let input = readlineSync.prompt()
+    read.setVisual(line => {
+      const aLine = line.split(" ")
+      line = aLine[aLine.length - 1]
+      const ob = getItem(_HELP, aLine.slice(0, aLine.length - 1))
+      let match
+      for (const i in ob) {
+        if (i.startsWith(aLine[aLine.length - 1]) && !(["format", "use", "flags"].includes(i))) {
+          match = i
+          break
+        }
+      }
+      log(chalk.hex("#888888")((match ?? "").slice(line.length)))
+    })
+    let input = await read.prompt("> ")
     input = input.split(" ").filter(item => item !== "")
     for (const i of _DATABASE.settings.alias) {
       if (i.name === input[0]) {
@@ -420,7 +434,7 @@ async function main() {
       hideLogin()
       loadData()
       main: while (true) {
-        let input = parseInput()
+        let input = await parseInput()
         console.log()
         if (input[0] === "exit") {
           if (input.length > 2) {
@@ -1781,6 +1795,10 @@ async function filterPass(filters) {
     if (prev) filtered.push(i)
   }
   return filtered
+}
+
+function log (query) {
+  process.stdout.write(query)
 }
 
 /*
