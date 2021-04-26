@@ -396,19 +396,22 @@ async function main() {
   }
 
   async function parseInput() {
-    console.log("")
-    read.setVisual(line => {
+    function suggest(line) {
       const aLine = line.split(" ")
       line = aLine[aLine.length - 1]
       const ob = getItem(_HELP, aLine.slice(0, aLine.length - 1))
-      let match
       for (const i in ob) {
         if (i.startsWith(aLine[aLine.length - 1]) && !(["format", "use", "flags"].includes(i))) {
-          match = i
-          break
+          return (i !== undefined && i.slice(line.length)) || ''
         }
       }
-      log(chalk.hex("#888888")((match ?? "").slice(line.length)))
+    }
+    console.log("")
+    read.setAutofill(line => {
+      return line + suggest(line)
+    })
+    read.setVisual(line => {
+      log(chalk.hex("#888888")(suggest(line) ?? ""))
     })
     let input = await read.prompt("> ")
     input = input.split(" ").filter(item => item !== "")
