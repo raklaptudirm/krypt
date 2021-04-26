@@ -17,6 +17,8 @@ A smart, secure, and feature-rich terminal password manager. Krypt uses all the 
 
 # Installation
 
+Always clone the latest release, not the latest commit. Commits can be `[UNSAFE]`, but releases are not.
+
 Clone the repo:
 
 ```bash
