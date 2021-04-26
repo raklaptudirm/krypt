@@ -366,13 +366,13 @@ async function main() {
    * Main process local functions
    */
 
-  function login() {
-    _MAST = readlineSync.question("PASSWORD: ", { hideEchoBack: true })
+  async function login() {
+    _MAST = await read.password("PASSWORD: ")
     _KEY = crypto.PBKDF2_HASH(_MAST, _DATABASE.salt.key)
 
     if (_DATABASE.settings.TwoFA.on)
       _2F = crypto.PBKDF2_HASH(
-        readlineSync.question(_DATABASE.settings.TwoFA.question + "? ", {
+        await read.prompt(_DATABASE.settings.TwoFA.question + "? ", {
           hideEchoBack: true,
         }),
         _DATABASE.salt.TwoFA
@@ -401,8 +401,11 @@ async function main() {
       line = aLine[aLine.length - 1]
       const ob = getItem(_HELP, aLine.slice(0, aLine.length - 1))
       for (const i in ob) {
-        if (i.startsWith(aLine[aLine.length - 1]) && !(["format", "use", "flags"].includes(i))) {
-          return (i !== undefined && i.slice(line.length)) || ''
+        if (
+          i.startsWith(aLine[aLine.length - 1]) &&
+          !["format", "use", "flags"].includes(i)
+        ) {
+          return (i !== undefined && i.slice(line.length)) || ""
         }
       }
     }
@@ -433,7 +436,7 @@ async function main() {
 
   if (fs.existsSync(__dirname + "/../databases/" + _NAME + ".json")) {
     if (!loadDatabase()) return
-    if (login()) {
+    if (await login()) {
       hideLogin()
       loadData()
       main: while (true) {
@@ -485,7 +488,7 @@ async function main() {
               continue main
             }
             printPass(_PASSWORDS[input], input)
-            const sel = readlineSync.question(
+            const sel = await read.prompt(
               WARN("Delete this entry? (yes): ")
             )
             if (sel !== "yes") {
@@ -625,14 +628,14 @@ async function main() {
               console.log(WARN("ID out of bounds."))
               continue main
             }
-            const name_ = readlineSync.question(
+            const name_ = await read.prompt(
               "Password Name (leave empty to keep same): "
             )
-            const username_ = readlineSync.question(
+            const username_ = await read.prompt(
               "Username (leave empty to keep same): "
             )
             const password_ =
-              readlineSync.question("Password (leave empty to generate): ", {
+              await read.prompt("Password (leave empty to generate): ", {
                 hideEchoBack: true,
               }) || generatePassword()
             _PASSWORDS[input] = createPass(
@@ -688,10 +691,10 @@ async function main() {
               )
               continue main
             }
-            const name_ = readlineSync.question("Password Name: ")
-            const username_ = readlineSync.question("Username: ")
+            const name_ = await read.prompt("Password Name: ")
+            const username_ = await read.prompt("Username: ")
             const password_ =
-              readlineSync.question("Password (leave empty to generate): ", {
+              await read.prompt("Password (leave empty to generate): ", {
                 hideEchoBack: true,
               }) || generatePassword()
             _PASSWORDS.push(createPass(name_, username_, password_))
@@ -794,16 +797,16 @@ async function main() {
                 )
                 continue main
               }
-              const sel = readlineSync.question(
+              const sel = await read.prompt(
                 OK("Enable 2-Factor Authentication? (yes): ")
               )
               if (sel === "yes") {
                 _DATABASE.settings.TwoFA.on = true
-                _DATABASE.settings.TwoFA.question = readlineSync.question(
+                _DATABASE.settings.TwoFA.question = await read.prompt(
                   "Enter a question: "
                 )
                 _2F = crypto.PBKDF2_HASH(
-                  readlineSync.question("Enter the answer: ")
+                  await read.prompt("Enter the answer: ")
                 )
                 _DATABASE.salt.TwoFA = _2F.salt
                 _2F = _2F.checksum
@@ -821,7 +824,7 @@ async function main() {
                   )
                   continue main
                 }
-                const sel = readlineSync.question(
+                const sel = await read.prompt(
                   WARN("Disable 2-Factor Authentication? (yes): ")
                 )
                 if (sel === "yes") {
@@ -839,11 +842,11 @@ async function main() {
                   continue main
                 }
                 _DATABASE.settings.TwoFA.question =
-                  readlineSync.question(
+                  await read.prompt(
                     "Enter new question (Keep empty to keep the same): "
                   ) || _DATABASE.settings.TwoFA.question
                 _2F = crypto.PBKDF2_HASH(
-                  readlineSync.question("Enter new answer: ")
+                  await read.prompt("Enter new answer: ")
                 )
                 _DATABASE.salt.TwoFA = _2F.salt
                 _2F = _2F.checksum
@@ -860,10 +863,10 @@ async function main() {
                 )
                 continue main
               }
-              const sel = readlineSync.question(OK("Enable Hint? (yes): "))
+              const sel = await read.prompt(OK("Enable Hint? (yes): "))
               if (sel === "yes") {
                 _DATABASE.settings.hint.on = true
-                _DATABASE.settings.hint.hint = readlineSync.question(
+                _DATABASE.settings.hint.hint = await read.prompt(
                   "Enter a hint: "
                 )
                 console.log(OK("Enabled Hint."))
@@ -879,7 +882,7 @@ async function main() {
                   )
                   continue main
                 }
-                const sel = readlineSync.question(WARN("Disable Hint? (yes): "))
+                const sel = await read.prompt(WARN("Disable Hint? (yes): "))
                 if (sel === "yes") {
                   _DATABASE.settings.hint.on = false
                   console.log(OK("Disabled Hint."))
@@ -895,7 +898,7 @@ async function main() {
                   continue main
                 }
                 _DATABASE.settings.hint.hint =
-                  readlineSync.question(
+                  await read.prompt(
                     "Enter new hint (Keep empty to keep the same):"
                   ) || _DATABASE.settings.hint.hint
                 console.log(OK("Changed Hint."))
@@ -916,7 +919,7 @@ async function main() {
                 )
                 continue main
               }
-              const alias = readlineSync.question("Enter alias name: ")
+              const alias = await read.prompt("Enter alias name: ")
               let isNotAlias = true
               for (const i of _DATABASE.settings.alias) {
                 if (i.name === alias) {
@@ -930,7 +933,7 @@ async function main() {
                     _DATABASE.settings.alias.push(
                       parseAlias(
                         alias,
-                        readlineSync.question("Enter alias command: ")
+                        await read.prompt("Enter alias command: ")
                       )
                     )
                   } catch (err) {
@@ -954,7 +957,7 @@ async function main() {
               }
               for (const i of _DATABASE.settings.alias) {
                 if (i.name === input[3]) {
-                  const alias = readlineSync.question("Enter new name: ")
+                  const alias = await read.prompt("Enter new name: ")
                   if (is(alias, _BASENAME)) {
                     i.name = alias
                     console.log(OK("Alias renamed successfully."))
@@ -1044,7 +1047,7 @@ async function main() {
                 isFile: true,
                 exists: true,
               })
-              const fName = readlineSync.question("Enter file name: ")
+              const fName = await read.prompt("Enter file name: ")
               if (_TREE[fName] === undefined) {
                 _TREE[fName] = fPath
                 fs.writeFileSync(
@@ -1065,7 +1068,7 @@ async function main() {
                   exists: true,
                 }
               )
-              const fName = readlineSync.question("Enter directory name: ")
+              const fName = await read.prompt("Enter directory name: ")
               if (_TREE[fName] === undefined) {
                 fs.mkdirSync(__dirname + "/../databases/" + _NAME + "/" + fName)
                 _TREE[fName] = "DIRECTORY"
@@ -1203,7 +1206,7 @@ async function main() {
               )
               continue main
             }
-            let name = readlineSync.question("Enter note name: ")
+            let name = await read.prompt("Enter note name: ")
             let lines = []
             console.log(
               `Enter your note. Enter to go to next line. Type END to end input: \n\n${"-".repeat(
@@ -1257,7 +1260,7 @@ async function main() {
               console.log(WARN("ID out of bounds."))
             } else {
               printNote(_NOTES[input], input + 1)
-              const _delete = readlineSync.question(
+              const _delete = await read.prompt(
                 WARN("Delete this note (yes)? ")
               )
               if (_delete === "yes") {
@@ -1800,7 +1803,7 @@ async function filterPass(filters) {
   return filtered
 }
 
-function log (query) {
+function log(query) {
   process.stdout.write(query)
 }
 
@@ -1835,7 +1838,7 @@ function log (query) {
       return
     }
     let config = getDatabases()
-    const newName = readlineSync.question("Enter database name: ")
+    const newName = await read.prompt("Enter database name: ")
     if (is(newName, _BASENAME) && newName.length !== 0) {
       if (!config.databases.includes(newName)) {
         config.databases.push(newName)
@@ -1884,7 +1887,7 @@ function log (query) {
         console.log(WARN("Can't delete last database."))
       } else {
         if (
-          readlineSync.question(
+          await read.prompt(
             WARN(`Delete the ${args[1]} database? (yes): `)
           ) === "yes"
         ) {
@@ -1913,7 +1916,7 @@ function log (query) {
     }
     let config = getDatabases()
     if (config.databases.includes(args[1])) {
-      const newDBName = readlineSync.question("Enter new name: ")
+      const newDBName = await read.prompt("Enter new name: ")
       if (is(newDBName, _BASENAME) && newDBName.length !== 0) {
         if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
           fs.renameSync(

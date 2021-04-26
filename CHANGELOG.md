@@ -3,7 +3,7 @@
 - Packed password commands into `password`.
 - Fixed `help` bug which printed empty child commands.
 - Converted `secure` args to flags.
-- Fixed some problems regarding fetching pwned passwords. 
+- Fixed some problems regarding fetching pwned passwords.
 
 # v4.2.0:
 
