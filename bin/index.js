@@ -19,6 +19,7 @@ const read = require("../lib/read.js")
 const chalk = require("chalk")
 const clipboardy = require("clipboardy")
 const style = require("ansi-styles")
+const e = require("../lib/escapes.js")
 
 /*
  * Terminal text themes
@@ -390,8 +391,8 @@ async function main() {
 
   function hideLogin() {
     console.log()
-    if (_DATABASE.settings.TwoFA.on) console.log("\u001b[4A\u001b[0G\u001b[0J")
-    else console.log("\u001b[3A\u001b[0G\u001b[0J")
+    if (_DATABASE.settings.TwoFA.on) console.log(e.CURSOR.UP(4) + e.CURSOR.TO_COLUMN(0) + e.ERASE.END_FROM_CURSOR)
+    else console.log(e.CURSOR.UP(3) + e.CURSOR.TO_COLUMN(0) + e.ERASE.END_FROM_CURSOR)
     console.log(OK("Logged in."))
   }
 
@@ -454,7 +455,7 @@ async function main() {
             console.log(WARN(`Invalid argument.`))
             continue main
           }
-          console.log("\u001b[2J")
+          console.log(e.ERASE.CLEAR_SCREEN)
           break
         } else if (input[0] === "change") {
           if (input.length > 1) {
@@ -1819,7 +1820,7 @@ function log(query) {
   let args = process.argv.slice(2)
   _WORDS = JSON.parse(fs.readFileSync(__dirname + "/../lib/dictionary.json"))
   if (args.length === 0 || ["--fullscreen", "-fs"].includes(args[0])) {
-    if (process.argv.length !== 2) console.log("\u001b[2J")
+    if (process.argv.length !== 2) console.log(e.ERASE.CLEAR_SCREEN)
     if (!fs.existsSync(__dirname + "/../config.json"))
       fs.writeFileSync(
         __dirname + "/../config.json",
