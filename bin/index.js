@@ -367,7 +367,7 @@ async function main() {
    */
 
   async function login() {
-    _MAST = await read.password("PASSWORD: ")
+    _MAST = await read.prompt("PASSWORD: ", true)
     _KEY = crypto.PBKDF2_HASH(_MAST, _DATABASE.salt.key)
 
     if (_DATABASE.settings.TwoFA.on)
