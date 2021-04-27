@@ -391,8 +391,14 @@ async function main() {
 
   function hideLogin() {
     console.log()
-    if (_DATABASE.settings.TwoFA.on) console.log(e.CURSOR.UP(4) + e.CURSOR.TO_COLUMN(0) + e.ERASE.END_FROM_CURSOR)
-    else console.log(e.CURSOR.UP(3) + e.CURSOR.TO_COLUMN(0) + e.ERASE.END_FROM_CURSOR)
+    if (_DATABASE.settings.TwoFA.on)
+      console.log(
+        e.CURSOR.UP(4) + e.CURSOR.TO_COLUMN(0) + e.ERASE.END_FROM_CURSOR
+      )
+    else
+      console.log(
+        e.CURSOR.UP(3) + e.CURSOR.TO_COLUMN(0) + e.ERASE.END_FROM_CURSOR
+      )
     console.log(OK("Logged in."))
   }
 
@@ -489,9 +495,7 @@ async function main() {
               continue main
             }
             printPass(_PASSWORDS[input], input)
-            const sel = await read.prompt(
-              WARN("Delete this entry? (yes): ")
-            )
+            const sel = await read.prompt(WARN("Delete this entry? (yes): "))
             if (sel !== "yes") {
               console.log(OK("Delete aborted."))
               continue main
@@ -636,9 +640,9 @@ async function main() {
               "Username (leave empty to keep same): "
             )
             const password_ =
-              await read.prompt("Password (leave empty to generate): ", {
+              (await read.prompt("Password (leave empty to generate): ", {
                 hideEchoBack: true,
-              }) || generatePassword()
+              })) || generatePassword()
             _PASSWORDS[input] = createPass(
               name_ || _PASSWORDS[input].name,
               username_ || _PASSWORDS[input].username,
@@ -695,9 +699,9 @@ async function main() {
             const name_ = await read.prompt("Password Name: ")
             const username_ = await read.prompt("Username: ")
             const password_ =
-              await read.prompt("Password (leave empty to generate): ", {
+              (await read.prompt("Password (leave empty to generate): ", {
                 hideEchoBack: true,
-              }) || generatePassword()
+              })) || generatePassword()
             _PASSWORDS.push(createPass(name_, username_, password_))
             console.log(
               OK(`Sucessfully added password at ID:${_PASSWORDS.length}.`)
@@ -843,9 +847,9 @@ async function main() {
                   continue main
                 }
                 _DATABASE.settings.TwoFA.question =
-                  await read.prompt(
+                  (await read.prompt(
                     "Enter new question (Keep empty to keep the same): "
-                  ) || _DATABASE.settings.TwoFA.question
+                  )) || _DATABASE.settings.TwoFA.question
                 _2F = crypto.PBKDF2_HASH(
                   await read.prompt("Enter new answer: ")
                 )
@@ -899,9 +903,9 @@ async function main() {
                   continue main
                 }
                 _DATABASE.settings.hint.hint =
-                  await read.prompt(
+                  (await read.prompt(
                     "Enter new hint (Keep empty to keep the same):"
-                  ) || _DATABASE.settings.hint.hint
+                  )) || _DATABASE.settings.hint.hint
                 console.log(OK("Changed Hint."))
                 reEncryptData()
               }
@@ -1888,9 +1892,9 @@ function log(query) {
         console.log(WARN("Can't delete last database."))
       } else {
         if (
-          await read.prompt(
+          (await read.prompt(
             WARN(`Delete the ${args[1]} database? (yes): `)
-          ) === "yes"
+          )) === "yes"
         ) {
           if (fs.existsSync(__dirname + "/../databases/" + args[1] + ".json"))
             fs.unlinkSync(__dirname + "/../databases/" + args[1] + ".json")
