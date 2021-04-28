@@ -468,9 +468,7 @@ async function main() {
             console.log(WARN(`Expected 0 arg(s), received ${input.length - 1}`))
             continue main
           }
-          _KEY = crypto.PBKDF2_HASH(
-            readlineSync.questionNewPassword("Enter new Password: ", { min: 8 })
-          )
+          _KEY = crypto.PBKDF2_HASH(await newPassword())
           _DATABASE.salt.key = _KEY.salt
           _KEY = _KEY.checksum
           _DATABASE.checksum = crypto.PBKDF2_HASH(_KEY)
@@ -1048,10 +1046,11 @@ async function main() {
               continue main
             }
             if (input[2] === "file") {
-              const fPath = readlineSync.questionPath("Enter file path: ", {
-                isFile: true,
-                exists: true,
-              })
+              const fPath = read.prompt("Enter the file path: ")
+              if (!(fs.existsSync(fPath) && fs.lstatSync(fPath).isFile())){
+                console.log(WARN("Directory does not exist."))
+                break main
+              }
               const fName = await read.prompt("Enter file name: ")
               if (_TREE[fName] === undefined) {
                 _TREE[fName] = fPath
@@ -1066,13 +1065,11 @@ async function main() {
                 console.log(WARN("Archive already exists."))
               }
             } else if (input[2] === "dir") {
-              const fPath = readlineSync.questionPath(
-                "Enter directory path: ",
-                {
-                  isDirectory: true,
-                  exists: true,
-                }
-              )
+              const fPath = read.prompt("Enter the directory path: ")
+              if (!(fs.existsSync(fPath) && fs.lstatSync(fPath).isDirectory())){
+                console.log(WARN("Directory does not exist."))
+                break main
+              }
               const fName = await read.prompt("Enter directory name: ")
               if (_TREE[fName] === undefined) {
                 fs.mkdirSync(__dirname + "/../databases/" + _NAME + "/" + fName)
@@ -1300,9 +1297,7 @@ async function main() {
     _DATABASE = _DATA_TEMPLATE
     _PASSWORDS = []
     _NOTES = []
-    _KEY = crypto.PBKDF2_HASH(
-      readlineSync.questionNewPassword("New Password: ", { min: 8 })
-    )
+    _KEY = crypto.PBKDF2_HASH(await newPassword())
     _DATABASE.salt.key = _KEY.salt
     _KEY = _KEY.checksum
     _DATABASE.checksum = crypto.PBKDF2_HASH(_KEY)
@@ -1810,6 +1805,24 @@ async function filterPass(filters) {
 
 function log(query) {
   process.stdout.write(query)
+}
+
+async function newPassword() {
+  pass: while (true) {
+    let password = await read.prompt("Enter new password: ", true)
+    if (await read.prompt("Re-enter the password: ", true) === password)
+      return password
+    else {
+      while (true) {
+        console.log(WARN("Passwords do not match. Re-enter password or press enter to try again: "))
+        let verify = await read.prompt("Re-enter the password: ", true)
+        if (verify === password)
+          return password
+        else if (verify === "")
+          continue pass
+      }
+    }
+  }
 }
 
 /*
