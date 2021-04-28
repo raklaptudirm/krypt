@@ -29,7 +29,6 @@
     "chalk": "^4.1.0",
     "clipboardy": "^2.3.0",
     "hibp": "^10.0.1",
-    "readline-sync": "^1.4.10",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
