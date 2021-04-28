@@ -1209,22 +1209,17 @@ async function main() {
               continue main
             }
             let name = await read.prompt("Enter note name: ")
-            let lines = []
-            console.log(
-              `Enter your note. Enter to go to next line. Type END to end input: \n\n${"-".repeat(
-                24
-              )}\n`
-            )
-            readlineSync.promptLoop(
-              line => {
-                lines.push(line)
-                return line === "END"
-              },
-              { prompt: "" }
-            )
-            lines.pop()
-            lines = lines.join("\n")
-            _NOTES.push({ name: name, info: lines, date: new Date() })
+            console.log()
+            read.setVisual(input => {
+              input = input.replace(/\\n/g, "\n")
+              console.log("\n")
+              printNote({name: name, info: input, date: new Date()}, 0)
+              log(e.GRAPHIC_MODE.RESET)
+            })
+            let note = await read.prompt("Enter your note:")
+            note = note.replace(/\\n/g, "\n")
+            console.log()
+            _NOTES.push({ name: name, info: note, date: new Date() })
             console.log(OK("Added note."))
             reEncryptData()
           } else if (input[1] === "get") {
@@ -1675,7 +1670,7 @@ function printNote(note, index) {
   console.log(
     `${chalk.bold(`[${index}] ${note.name}`)}\n${chalk.bold(
       note.date
-    )}\n\n${"-".repeat(24)}\n\n${str}\n\n${"-".repeat(24)}`
+    )}\n\n${"-".repeat(24)}\n\n${str}\n${e.GRAPHIC_MODE.RESET}\n${"-".repeat(24)}`
   )
 }
 
