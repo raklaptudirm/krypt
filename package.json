@@ -25,6 +25,7 @@
     "lib": "lib"
   },
   "dependencies": {
+    "better_read": "^1.0.2",
     "chalk": "^4.1.0",
     "clipboardy": "^2.3.0",
     "hibp": "^10.0.1",
