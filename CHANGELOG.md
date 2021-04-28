@@ -1,11 +1,17 @@
-# v4.2.1:
+# v4.2.2
+
+- Added command suggestions and autofill.
+- Added live preview for editing notes.
+- Removed readline-sync dependency.
+
+# v4.2.1
 
 - Packed password commands into `password`.
 - Fixed `help` bug which printed empty child commands.
 - Converted `secure` args to flags.
 - Fixed some problems regarding fetching pwned passwords.
 
-# v4.2.0:
+# v4.2.0
 
 - Better aliases.
 - Alias params, with [$n].

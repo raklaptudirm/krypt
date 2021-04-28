@@ -1046,7 +1046,7 @@ async function main() {
             }
             if (input[2] === "file") {
               const fPath = read.prompt("Enter the file path: ")
-              if (!(fs.existsSync(fPath) && fs.lstatSync(fPath).isFile())){
+              if (!(fs.existsSync(fPath) && fs.lstatSync(fPath).isFile())) {
                 console.log(WARN("Directory does not exist."))
                 break main
               }
@@ -1065,7 +1065,9 @@ async function main() {
               }
             } else if (input[2] === "dir") {
               const fPath = read.prompt("Enter the directory path: ")
-              if (!(fs.existsSync(fPath) && fs.lstatSync(fPath).isDirectory())){
+              if (
+                !(fs.existsSync(fPath) && fs.lstatSync(fPath).isDirectory())
+              ) {
                 console.log(WARN("Directory does not exist."))
                 break main
               }
@@ -1212,7 +1214,7 @@ async function main() {
             read.setVisual(input => {
               input = input.replace(/\\n/g, "\n")
               console.log("\n")
-              printNote({name: name, info: input, date: new Date()}, 0)
+              printNote({ name: name, info: input, date: new Date() }, 0)
               log(e.GRAPHIC_MODE.RESET)
             })
             let note = await read.prompt("Enter your note:")
@@ -1669,7 +1671,9 @@ function printNote(note, index) {
   console.log(
     `${chalk.bold(`[${index}] ${note.name}`)}\n${chalk.bold(
       note.date
-    )}\n\n${"-".repeat(24)}\n\n${str}\n${e.GRAPHIC_MODE.RESET}\n${"-".repeat(24)}`
+    )}\n\n${"-".repeat(24)}\n\n${str}\n${e.GRAPHIC_MODE.RESET}\n${"-".repeat(
+      24
+    )}`
   )
 }
 
@@ -1804,16 +1808,18 @@ function log(query) {
 async function newPassword() {
   pass: while (true) {
     let password = await read.prompt("Enter new password: ", true)
-    if (await read.prompt("Re-enter the password: ", true) === password)
+    if ((await read.prompt("Re-enter the password: ", true)) === password)
       return password
     else {
       while (true) {
-        console.log(WARN("Passwords do not match. Re-enter password or press enter to try again: "))
+        console.log(
+          WARN(
+            "Passwords do not match. Re-enter password or press enter to try again: "
+          )
+        )
         let verify = await read.prompt("Re-enter the password: ", true)
-        if (verify === password)
-          return password
-        else if (verify === "")
-          continue pass
+        if (verify === password) return password
+        else if (verify === "") continue pass
       }
     }
   }
