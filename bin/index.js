@@ -654,7 +654,12 @@ async function main() {
               )
               continue main
             }
-            let matches = await filterPass(input.slice(1))
+            try {
+              let matches = await filterPass(input.slice(1))
+            } catch (e) {
+              console.log(e.message)
+              continue main
+            }
             if (matches.length) {
               clipboardy.writeSync(_PASSWORDS[matches[0]].password)
               console.log(OK("Password copied to clipboard."))
