@@ -1295,6 +1295,10 @@ async function main() {
   } else {
     if (!fs.existsSync(__dirname + "/../databases"))
       fs.mkdirSync(__dirname + "/../databases")
+    else if (!(fs.lstatSync(__dirname + "/../databases").isDirectory())) {
+      console.log(WARN("A file with the name databases exits in the source. Remove it to proceed."))
+      return
+    }
     _DATABASE = _DATA_TEMPLATE
     _PASSWORDS = []
     _NOTES = []
