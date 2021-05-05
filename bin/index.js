@@ -654,8 +654,9 @@ async function main() {
               )
               continue main
             }
+            let matches
             try {
-              let matches = await filterPass(input.slice(1))
+              matches = await filterPass(input.slice(1))
             } catch (e) {
               console.log(e.message)
               continue main
