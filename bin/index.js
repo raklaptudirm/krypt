@@ -732,7 +732,8 @@ async function main() {
             else {
               if (clear)
                 for (const i of print) console.log(_PASSWORDS[i].password)
-              else for (const i of print) printPass(_PASSWORDS[i], i + 1)
+              else
+                for (const i of print) printPass(_PASSWORDS[i], parseInt(i) + 1)
             }
           } else {
             console.log(WARN("Invalid subcommand for Password."))
