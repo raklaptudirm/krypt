@@ -2,7 +2,7 @@
 
 /*
  * krypt
- * https://github.com/Mkorp-Official/Krypt
+ * https://github.com/raklaptudirm/Krypt
  *
  * Copyright (c) 2021 Rak Laptudirm
  * Licensed under the MIT license.
