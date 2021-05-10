@@ -13,6 +13,7 @@
 
 A smart, secure, and feature-rich terminal password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
 
+# Documentation
 [Docs Here](https://github.com/Mkorp-Official/Krypt/wiki)
 
 # Installation
@@ -53,4 +54,4 @@ krypt
 
 # License
 
-This software is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+This software is licensed under the [MIT License](https://choosealicense.com/licenses/mit/).
