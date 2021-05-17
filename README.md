@@ -14,7 +14,7 @@
 A smart, secure, and feature-rich terminal password manager. Krypt uses all the latest encryption standards and protocols to give its users the most security. It is also the most versatile terminal password manager available today.
 
 # Documentation
-[Docs Here](https://github.com/Mkorp-Official/Krypt/wiki)
+[Documentation Here](https://github.com/Mkorp-Official/Krypt/wiki)
 
 # Installation
 
@@ -23,25 +23,25 @@ Always clone the latest release, not the latest commit. Commits can be `[UNSAFE]
 Clone the repo:
 
 ```bash
-git clone https://github.com/Mkorp-Official/Krypt.git
+$ git clone https://github.com/Mkorp-Official/Krypt.git
 ```
 
 Change your directory:
 
 ```bash
-cd path/to/krypt
+$ cd path/to/krypt
 ```
 
 Install the script:
 
 ```bash
-npm install -global
+$ npm install -global
 ```
 
 Start the process:
 
 ```bash
-krypt
+$ krypt
 ```
 
 # Features
