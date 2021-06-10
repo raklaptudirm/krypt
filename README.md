@@ -4,6 +4,8 @@
 
 # Krypt
 
+### NOTICE: Big re-write coming
+
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Mkorp-Official/Krypt/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/Mkorp-Official/Krypt)](https://github.com/Mkorp-Official/Krypt/issues)
