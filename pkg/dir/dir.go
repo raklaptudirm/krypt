@@ -24,6 +24,12 @@ var (
 	ErrInvalidKey      = fmt.Errorf("the key is invalid")
 )
 
+// file permission integers
+const (
+	drwxr_xr_x = 0755
+	_rw_r__r__ = 0644
+)
+
 func Root() (root string, err error) {
 	root, err = os.UserHomeDir()
 	if err != nil {
@@ -31,7 +37,7 @@ func Root() (root string, err error) {
 	}
 
 	root += "/.krypt"
-	err = os.MkdirAll(root, 0755)
+	err = os.MkdirAll(root, drwxr_xr_x)
 	return
 }
 
@@ -39,82 +45,37 @@ func Pass() (string, error) {
 	return rootDir("passwords")
 }
 
-func KeyFile() (string, error) {
-	return rootFile("key")
+// key writing and fetching functions
+
+func WriteKey(key []byte) error {
+	return writeFile("key", key)
 }
 
-func WriteKey(key []byte) (err error) {
-	path, err := KeyFile()
-	if err != nil {
-		return
-	}
-
-	os.WriteFile(path, key, 0644)
-	return
+func Key() ([]byte, error) {
+	return readFile("key", 32, ErrInvalidKey)
 }
 
-func Key() (key []byte, err error) {
-	path, err := KeyFile()
-	if err != nil {
-		return
-	}
+// salt writing and fetching functions
 
-	key, err = os.ReadFile(path)
-	if len(key) != 32 {
-		err = ErrInvalidKey
-	}
-
-	return
+func WriteSalt(salt []byte) error {
+	return writeFile("salt", salt)
 }
 
-func WriteSalt(salt []byte) (err error) {
-	path, err := rootFile("salt")
-	if err != nil {
-		return
-	}
-
-	err = os.WriteFile(path, salt, 0644)
-	return
+func Salt() ([]byte, error) {
+	return readFile("salt", 8, ErrInvalidSalt)
 }
 
-func Salt() (salt []byte, err error) {
-	path, err := rootFile("salt")
-	if err != nil {
-		return
-	}
+// checksum writing and fetching functions
 
-	salt, err = os.ReadFile(path)
-	if len(salt) != 8 {
-		err = ErrInvalidSalt
-	}
-
-	return
+func WriteChecksum(hash []byte) error {
+	return writeFile("checksum", hash)
 }
 
-func WriteChecksum(hash []byte) (err error) {
-	path, err := rootFile("checksum")
-	if err != nil {
-		return
-	}
-
-	err = os.WriteFile(path, hash, 0644)
-	return
+func Checksum() ([]byte, error) {
+	return readFile("checksum", 32, ErrInvalidChecksum)
 }
 
-func Checksum() (checksum []byte, err error) {
-	path, err := rootFile("checksum")
-	if err != nil {
-		return
-	}
-
-	checksum, err = os.ReadFile(path)
-	if len(checksum) != 32 {
-		err = ErrInvalidChecksum
-	}
-
-	return
-}
-
+// rootFile gets the path of the file provided from the the krypt root
 func rootFile(path string) (s string, err error) {
 	s, err = Root()
 	if err != nil {
@@ -125,10 +86,39 @@ func rootFile(path string) (s string, err error) {
 	return
 }
 
+// rootDir gets the path of the directory provided from the krypt root,
+// and creates it if it does not exist.
 func rootDir(path string) (s string, err error) {
 	s, err = rootFile(path)
 	if err == nil {
-		err = os.MkdirAll(s, 0755)
+		err = os.MkdirAll(s, drwxr_xr_x)
+	}
+
+	return
+}
+
+// writeFile writes data to root file path
+func writeFile(path string, data []byte) (err error) {
+	path, err = rootFile(path)
+	if err != nil {
+		return
+	}
+
+	err = os.WriteFile(path, data, _rw_r__r__)
+	return
+}
+
+// readFile reads data from root file path and checks if it's length is equal to
+// expLen, otherwise returns lenErr
+func readFile(path string, expLen int, lenErr error) (data []byte, err error) {
+	path, err = rootFile(path)
+	if err != nil {
+		return
+	}
+
+	data, err = os.ReadFile(path)
+	if len(data) != expLen {
+		err = lenErr
 	}
 
 	return

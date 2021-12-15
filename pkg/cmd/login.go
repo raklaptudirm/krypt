@@ -42,8 +42,17 @@ var loginCmd = &cobra.Command{
 		access to it.
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		pw, err := term.Pass("Enter password: ")
+		// check is user is logged in
+		_, err := dir.Key()
 
+		// if there is a valid key in the keyfile, dir.Key will return nil
+		// error, so the user must be logged in
+		if err == nil {
+			term.Errorln("already logged in.")
+			return
+		}
+
+		pw, err := term.Pass("Enter password: ")
 		if err != nil {
 			term.Errorln(err)
 			return
@@ -56,11 +65,14 @@ var loginCmd = &cobra.Command{
 		}
 
 		hash := crypto.Sha256(pw)
+
+		// check equality with previously stored checksum
 		if !reflect.DeepEqual(hash, checksum) {
-			term.Errorln("Wrong password.")
+			term.Errorln("wrong password.")
 			return
 		}
 
+		// use previously generated random salt for key generation
 		salt, err := dir.Salt()
 		if err != nil {
 			term.Errorln(err)
@@ -71,7 +83,7 @@ var loginCmd = &cobra.Command{
 
 		err = dir.WriteKey(key)
 		if err == nil {
-			fmt.Println("Logged in to krypt.")
+			fmt.Println("Logged in.")
 		} else {
 			term.Errorln(err)
 		}

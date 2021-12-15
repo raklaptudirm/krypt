@@ -15,9 +15,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
@@ -30,13 +30,14 @@ var rootCmd = &cobra.Command{
 			Usage: krypt [command] [flags]
 			Try 'krypt --help' for more information.
 		`))
-		os.Exit(2)
 	},
 }
 
-func Execute() {
+func Execute() int {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		term.Errorln(err)
+		return 1
 	}
+
+	return 0
 }
