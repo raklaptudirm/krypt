@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +34,6 @@ var rootCmd = &cobra.Command{
 
 func Execute() int {
 	if err := rootCmd.Execute(); err != nil {
-		term.Errorln(err)
 		return 1
 	}
 
