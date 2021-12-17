@@ -14,26 +14,17 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "krypt [command]",
-	Short: "Krypt is a powerful password manager",
-	Long:  "A powerful, featured password manager.",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(heredoc.Doc(`
-			Usage: krypt [command] [flags]
-			Try 'krypt --help' for more information.
-		`))
-	},
+	Use:  "krypt command",
+	Args: cobra.NoArgs,
 }
 
 func Execute() int {
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		return 1
 	}
 

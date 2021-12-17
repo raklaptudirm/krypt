@@ -45,6 +45,11 @@ func Pass() (string, error) {
 	return rootDir("passwords")
 }
 
+func KeyExists() bool {
+	_, err := Key()
+	return err == nil
+}
+
 // key writing and fetching functions
 
 func WriteKey(key []byte) error {

@@ -23,51 +23,35 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(addCmd)
+	rootCmd.AddCommand(listCmd)
 }
 
-var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "add a new password to krypt, encrypted with your data",
-	Args:  cobra.NoArgs,
+var listCmd = &cobra.Command{
+	Use:   "list [name]",
+	Short: "un-encrypt and fetch a password from krypt using the filters",
 	Long: heredoc.Doc(`
-		Add a new password with a name, username and password to
-		krypt. You will later be able to edit and manipulate this
-		password.
+		List all the passwords which match the provided filters. If no filters
+		are provided, all the passwords are listed.
 	`),
-	Run: add,
+	Run: get,
 }
 
-func add(cmd *cobra.Command, args []string) {
-	name, err := term.Input("name: ")
+func get(cmd *cobra.Command, args []string) {
+	passwords, err := pass.Get(pass.Filter{
+		Type: pass.FilterName,
+		Data: args[0],
+	})
 	if err != nil {
 		term.Errorln(err)
 		return
 	}
 
-	user, err := term.Input("username: ")
-	if err != nil {
-		term.Errorln(err)
+	if len(passwords) == 0 {
+		term.Errorln("No passwords matched provided filters.")
 		return
 	}
 
-	p, err := term.Pass("password: ")
-	if err != nil {
-		term.Errorln(err)
-		return
+	for _, password := range passwords {
+		fmt.Printf("%v\n\n", password.String())
 	}
-
-	password := pass.Password{
-		Name:     name,
-		UserID:   user,
-		Password: string(p),
-	}
-
-	err = password.Write()
-	if err != nil {
-		term.Errorln(err)
-		return
-	}
-
-	fmt.Println("Added new password.")
 }

@@ -31,7 +31,7 @@ func init() {
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login to your krypt database.",
+	Short: "login to krypt with your registered master password",
 	Args:  cobra.NoArgs,
 	Long: heredoc.Doc(`
 		Login stores your provided password in a file so that
@@ -41,51 +41,49 @@ var loginCmd = &cobra.Command{
 		file with your key will	remain and other people may get
 		access to it.
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
-		// check is user is logged in
-		_, err := dir.Key()
+	Run: login,
+}
 
-		// if there is a valid key in the keyfile, dir.Key will return nil
-		// error, so the user must be logged in
-		if err == nil {
-			term.Errorln("already logged in.")
-			return
-		}
+func login(cmd *cobra.Command, args []string) {
+	loggedIn := dir.KeyExists()
+	if loggedIn {
+		term.Errorln("already logged in.")
+		return
+	}
 
-		pw, err := term.Pass("Enter password: ")
-		if err != nil {
-			term.Errorln(err)
-			return
-		}
+	pw, err := term.Pass("Enter password: ")
+	if err != nil {
+		term.Errorln(err)
+		return
+	}
 
-		checksum, err := dir.Checksum()
-		if err != nil {
-			term.Errorln(err)
-			return
-		}
+	checksum, err := dir.Checksum()
+	if err != nil {
+		term.Errorln(err)
+		return
+	}
 
-		hash := crypto.Sha256(pw)
+	hash := crypto.Sha256(pw)
 
-		// check equality with previously stored checksum
-		if !reflect.DeepEqual(hash, checksum) {
-			term.Errorln("wrong password.")
-			return
-		}
+	// check equality with previously stored checksum
+	if !reflect.DeepEqual(hash, checksum) {
+		term.Errorln("wrong password.")
+		return
+	}
 
-		// use previously generated random salt for key generation
-		salt, err := dir.Salt()
-		if err != nil {
-			term.Errorln(err)
-			return
-		}
+	// use previously generated random salt for key generation
+	salt, err := dir.Salt()
+	if err != nil {
+		term.Errorln(err)
+		return
+	}
 
-		key := crypto.Pbkdf2(pw, salt)
+	key := crypto.Pbkdf2(pw, salt)
 
-		err = dir.WriteKey(key)
-		if err == nil {
-			fmt.Println("Logged in.")
-		} else {
-			term.Errorln(err)
-		}
-	},
+	err = dir.WriteKey(key)
+	if err == nil {
+		fmt.Println("Logged in.")
+	} else {
+		term.Errorln(err)
+	}
 }

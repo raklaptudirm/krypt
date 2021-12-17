@@ -108,5 +108,6 @@ password: // main password loop
 		return
 	}
 
+	fmt.Println("Your password has been registered.")
 	return
 }

@@ -28,25 +28,24 @@ func init() {
 
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
-	Short: "Log off your krypt database.",
+	Short: "log off krypt by removing the encryption key file",
 	Args:  cobra.NoArgs,
 	Long: heredoc.Doc(`
 		Logout clears the file which stores your database key,
 		so that accessing the passwords requires logging in with
 		the master password.
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
-		_, err := dir.Key()
+	Run: logout,
+}
 
-		// if there is a valid key in the keyfile, dir.Key will return nil
-		// error, so the user must be logged in
-		if err == nil {
-			dir.WriteKey([]byte{})
-			fmt.Println("Logged out.")
-			return
-		}
+func logout(cmd *cobra.Command, args []string) {
+	loggedIn := dir.KeyExists()
+	if loggedIn {
+		dir.WriteKey([]byte{})
+		fmt.Println("Logged out.")
+		return
+	}
 
-		// not logged in
-		term.Errorln("you are not logged in.")
-	},
+	// not logged in
+	term.Errorln("you are not logged in.")
 }
