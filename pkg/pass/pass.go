@@ -89,11 +89,19 @@ func (p *Password) Write() error {
 	path := pass + "/" + hex.EncodeToString(hash)
 
 	err = os.WriteFile(path, data, 0644)
+	return err
+}
+
+func Remove(name string) error {
+	pass, err := dir.Pass()
 	if err != nil {
 		return err
 	}
 
-	return nil
+	path := pass + "/" + name
+
+	err = os.Remove(path)
+	return err
 }
 
 type FilterData int
@@ -109,7 +117,9 @@ type Filter struct {
 	Data string
 }
 
-func Get(filters ...Filter) (pass []Password, err error) {
+func Get(filters ...Filter) (pass map[string]Password, err error) {
+	pass = make(map[string]Password)
+
 	passDir, err := dir.Pass()
 	if err != nil {
 		return
@@ -129,7 +139,7 @@ func Get(filters ...Filter) (pass []Password, err error) {
 		}
 
 		if matchAll(password, filters...) {
-			pass = append(pass, password)
+			pass[name] = password
 		}
 	}
 
