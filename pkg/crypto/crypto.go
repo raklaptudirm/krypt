@@ -15,7 +15,6 @@ package crypto
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"crypto/aes"
@@ -116,16 +115,14 @@ func Pbkdf2(pw []byte, salt []byte) (key []byte) {
 	return
 }
 
-var setSeed sync.Once
-
 func RandBytes(len int) []byte {
-	// set rand seed once
-	setSeed.Do(func() {
-		rand.Seed(time.Now().UnixNano())
-	})
-
 	// generate len random bytes
 	b := make([]byte, len)
 	rand.Read(b)
 	return b
+}
+
+func init() {
+	// set rand seed on init
+	rand.Seed(time.Now().UnixNano())
 }
