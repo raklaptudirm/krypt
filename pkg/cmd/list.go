@@ -52,6 +52,6 @@ func get(cmd *cobra.Command, args []string) {
 	}
 
 	for _, password := range passwords {
-		fmt.Printf("%v\n\n", password.String())
+		fmt.Println(password.String())
 	}
 }
