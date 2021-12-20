@@ -17,11 +17,9 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"math"
 	"os"
 	"strings"
 
-	"github.com/agnivade/levenshtein"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
 	"github.com/raklaptudirm/krypt/pkg/dir"
 )
@@ -51,26 +49,6 @@ func (p *Password) encode(key []byte) (b []byte, err error) {
 	b = append(b, '\n')
 	b = append(b, []byte(p.Password)...)
 	b, err = crypto.Encrypt(b, key)
-	return
-}
-
-func decode(b []byte, key []byte) (pass Password, err error) {
-	b, err = crypto.Decrypt(b, key)
-	if err != nil {
-		return
-	}
-
-	lines := bytes.Split(b, []byte{'\n'})
-	if len(lines) != 3 {
-		err = ErrDecode{b}
-		return
-	}
-
-	pass = Password{
-		Name:     string(lines[0]),
-		UserID:   string(lines[1]),
-		Password: string(lines[2]),
-	}
 	return
 }
 
@@ -104,96 +82,24 @@ func Remove(name string) error {
 	return err
 }
 
-type FilterData int
-
-const (
-	FilterName FilterData = iota
-	FilterUsername
-	FilterPassStrength
-)
-
-type Filter struct {
-	Type FilterData
-	Data string
-}
-
-func Get(key []byte, filters ...Filter) (pass map[string]Password, err error) {
-	pass = make(map[string]Password)
-
-	passDir, err := dir.Pass()
+func decode(b []byte, key []byte) (pass Password, err error) {
+	b, err = crypto.Decrypt(b, key)
 	if err != nil {
 		return
 	}
 
-	files, err := os.ReadDir(passDir)
-	if err != nil {
+	lines := bytes.Split(b, []byte{'\n'})
+	if len(lines) != 3 {
+		err = ErrDecode{b}
 		return
 	}
 
-	for _, file := range files {
-		name := file.Name()
-
-		password, err := get(name, key)
-		if err != nil {
-			return pass, err
-		}
-
-		if matchAll(password, filters...) {
-			pass[name] = password
-		}
+	pass = Password{
+		Name:     string(lines[0]),
+		UserID:   string(lines[1]),
+		Password: string(lines[2]),
 	}
-
-	if len(pass) == 0 {
-		err = fmt.Errorf("no matching passwords")
-	}
-
 	return
-}
-
-func matchAll(pass Password, filters ...Filter) bool {
-	for _, filter := range filters {
-		if match(pass, filter) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func match(pass Password, filter Filter) bool {
-	minDist := 2
-
-	switch filter.Type {
-	case FilterName:
-		filterName := strings.ToLower(filter.Data)
-		passName := strings.ToLower(pass.Name)
-
-		dist := levenshtein.ComputeDistance(filterName, passName)
-		dist = int(math.Abs(float64(dist)))
-
-		if dist <= minDist {
-			return true
-		}
-
-		return false
-	case FilterUsername:
-		filterUser := strings.ToLower(filter.Data)
-		passUserID := strings.ToLower(pass.UserID)
-
-		dist := levenshtein.ComputeDistance(filterUser, passUserID)
-		dist = int(math.Abs(float64(dist)))
-
-		if dist <= minDist {
-			return true
-		}
-
-		return false
-	case FilterPassStrength:
-		return false
-	}
-
-	// unreachable
-	return false
 }
 
 func get(name string, key []byte) (pass Password, err error) {
