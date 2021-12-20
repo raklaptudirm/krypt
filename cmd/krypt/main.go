@@ -16,6 +16,7 @@ package main
 import (
 	"os"
 
+	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/pkg/cmd/root"
 	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/term"
@@ -35,7 +36,14 @@ func main() {
 }
 
 func kryptMain() exitCode {
-	factory := &cmdutil.Factory{}
+	credentials, err := auth.Get()
+	if err != nil {
+		term.Errorln(err)
+	}
+
+	factory := &cmdutil.Factory{
+		Auth: credentials,
+	}
 
 	rootCmd := root.NewCmd(factory)
 	rootCmd.SetArgs(os.Args[1:])
