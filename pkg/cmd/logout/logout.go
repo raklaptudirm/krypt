@@ -11,41 +11,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package logout
 
 import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/dir"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCmd.AddCommand(logoutCmd)
+type LogoutOptions struct{}
+
+func NewCmd(f *cmdutil.Factory) *cobra.Command {
+	opts := &LogoutOptions{}
+
+	var cmd = &cobra.Command{
+		Use:   "logout",
+		Short: "log off krypt by removing the encryption key file",
+		Args:  cobra.NoArgs,
+		Long: heredoc.Doc(`
+			Logout clears the file which stores your database key,
+			so that accessing the passwords requires logging in with
+			the master password.
+		`),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logout(opts)
+		},
+	}
+
+	return cmd
 }
 
-var logoutCmd = &cobra.Command{
-	Use:   "logout",
-	Short: "log off krypt by removing the encryption key file",
-	Args:  cobra.NoArgs,
-	Long: heredoc.Doc(`
-		Logout clears the file which stores your database key,
-		so that accessing the passwords requires logging in with
-		the master password.
-	`),
-	Run: logout,
-}
-
-func logout(cmd *cobra.Command, args []string) {
+func logout(opts *LogoutOptions) error {
 	loggedIn := dir.KeyExists()
 	if loggedIn {
 		dir.WriteKey([]byte{})
 		fmt.Println("Logged out.")
-		return
+		return nil
 	}
 
 	// not logged in
-	term.Errorln("you are not logged in.")
+	return fmt.Errorf("you are not logged in")
 }

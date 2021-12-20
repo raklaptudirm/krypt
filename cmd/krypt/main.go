@@ -16,23 +16,38 @@ package main
 import (
 	"os"
 
-	"github.com/raklaptudirm/krypt/pkg/cmd"
-	"github.com/raklaptudirm/krypt/pkg/dir"
+	"github.com/raklaptudirm/krypt/pkg/cmd/root"
+	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/term"
+	"github.com/spf13/cobra"
+)
+
+type exitCode int
+
+const (
+	exitOkay  exitCode = 0
+	exitError exitCode = 1
 )
 
 func main() {
-	_, err := dir.Checksum()
+	exit := kryptMain()
+	os.Exit(int(exit))
+}
 
-	// if there is no valid checksum, user has not registered a
-	// password yet, so request it
-	if err != nil {
-		err = term.Register()
-		if err != nil {
-			term.Errorln(err)
-			return
-		}
+func kryptMain() exitCode {
+	factory := &cmdutil.Factory{}
+
+	rootCmd := root.NewCmd(factory)
+	rootCmd.SetArgs(os.Args[1:])
+
+	if cmd, err := rootCmd.ExecuteC(); err != nil {
+		printError(err, cmd)
+		return exitError
 	}
+	return exitOkay
+}
 
-	os.Exit(cmd.Execute())
+func printError(err error, cmd *cobra.Command) {
+	term.Errorln(err)
+	term.Errorln(cmd.UsageString())
 }

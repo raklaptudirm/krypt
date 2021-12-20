@@ -11,80 +11,74 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package edit
 
 import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/internal/auth"
+	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
 	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCmd.AddCommand(editCmd)
+type EditOptions struct {
+	Auth     *auth.Auth
+	Password *pass.Password
+	PassID   string
 }
 
-var editCmd = &cobra.Command{
-	Use:   "edit [name]",
-	Short: "edit a stored password in krypt",
-	Args:  cobra.ExactArgs(1),
-	Long: heredoc.Doc(`
-		Edit is used to edit a password in krypt, delete the
-		previous one, and store the new one.
-	`),
-	Run: edit,
+func NewCmd(f *cmdutil.Factory) *cobra.Command {
+	opts := &EditOptions{
+		Auth: f.Auth,
+	}
+
+	var cmd = &cobra.Command{
+		Use:   "edit [name]",
+		Short: "edit a stored password in krypt",
+		Args:  cobra.ExactArgs(1),
+		Long: heredoc.Doc(`
+			Edit is used to edit a password in krypt, delete the
+			previous one, and store the new one.
+		`),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO: set option password
+			// check for passwords using argument as:
+			// 1) hash
+			// 2) name
+			// 3) username
+			return edit(opts)
+		},
+	}
+
+	return cmd
 }
 
-func edit(cmd *cobra.Command, args []string) {
-	passwords, err := pass.Get(pass.Filter{
-		Type: pass.FilterName,
-		Data: args[0],
-	})
-	if err != nil {
-		term.Errorln(err)
-		return
-	}
-
-	if len(passwords) == 0 {
-		term.Errorln("No passwords matched provided filters.")
-		return
-	}
-
-	var currentPass pass.Password
-	var currentPassName string
-	for pName, password := range passwords {
-		currentPass = password
-		currentPassName = pName
-		break
-	}
-
+func edit(opts *EditOptions) error {
 	name, err := term.Input("name: ")
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 	if name == "" {
-		name = currentPass.Name
+		name = opts.Password.Name
 	}
 
 	user, err := term.Input("username: ")
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 	if user == "" {
-		user = currentPass.UserID
+		user = opts.Password.UserID
 	}
 
 	p, err := term.Pass("password: ")
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 	if len(p) == 0 {
-		p = []byte(currentPass.Password)
+		p = []byte(opts.Password.Password)
 	}
 
 	password := pass.Password{
@@ -93,17 +87,16 @@ func edit(cmd *cobra.Command, args []string) {
 		Password: string(p),
 	}
 
-	err = pass.Remove(currentPassName)
+	err = pass.Remove(opts.PassID)
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
-	err = password.Write()
+	err = password.Write(opts.Auth.Key)
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	fmt.Println("Edited password.")
+	return nil
 }

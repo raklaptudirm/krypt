@@ -22,33 +22,8 @@ import (
 	"crypto/sha256"
 	"math/rand"
 
-	"github.com/raklaptudirm/krypt/pkg/dir"
 	"golang.org/x/crypto/pbkdf2"
 )
-
-// EncryptWithKey is a wrapper on Encrypt which automatically reads the
-// key from the key root file.
-func EncryptWithKey(src []byte) (enc []byte, err error) {
-	key, err := dir.Key()
-	if err != nil {
-		return
-	}
-
-	enc, err = Encrypt(src, key)
-	return
-}
-
-// DecryptWithKey is a wrapper on Decrypt which automatically reads the
-// key from the key root file.
-func DecryptWithKey(ct []byte) (clt []byte, err error) {
-	key, err := dir.Key()
-	if err != nil {
-		return
-	}
-
-	clt, err = Decrypt(ct, key)
-	return
-}
 
 // Sha256 wraps the sha256.Sum256 method to return a []byte instead of
 // a [32]byte array.

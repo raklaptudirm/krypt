@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package login
 
 import (
 	"fmt"
@@ -20,62 +20,69 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 
+	"github.com/raklaptudirm/krypt/internal/auth"
+	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
 	"github.com/raklaptudirm/krypt/pkg/dir"
 	"github.com/raklaptudirm/krypt/pkg/term"
 )
 
-func init() {
-	rootCmd.AddCommand(loginCmd)
+type LoginOptions struct {
+	Auth *auth.Auth
 }
 
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "login to krypt with your registered master password",
-	Args:  cobra.NoArgs,
-	Long: heredoc.Doc(`
-		Login stores your provided password in a file so that
-		you do not need to enter your	password multiple times.
+func NewCmd(f *cmdutil.Factory) *cobra.Command {
+	opts := &LoginOptions{
+		Auth: f.Auth,
+	}
 
-		Remember to logout once you are finished,	otherwise the
-		file with your key will	remain and other people may get
-		access to it.
-	`),
-	Run: login,
+	var cmd = &cobra.Command{
+		Use:   "login",
+		Short: "login to krypt with your registered master password",
+		Args:  cobra.NoArgs,
+		Long: heredoc.Doc(`
+			Login stores your provided password in a file so that
+			you do not need to enter your	password multiple times.
+	
+			Remember to logout once you are finished,	otherwise the
+			file with your key will	remain and other people may get
+			access to it.
+		`),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return login(opts)
+		},
+	}
+
+	return cmd
 }
 
-func login(cmd *cobra.Command, args []string) {
-	loggedIn := dir.KeyExists()
+func login(opts *LoginOptions) error {
+	loggedIn := len(opts.Auth.Key) != 0
 	if loggedIn {
-		term.Errorln("already logged in.")
-		return
+		return fmt.Errorf("already logged in")
 	}
 
 	pw, err := term.Pass("Enter password: ")
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	checksum, err := dir.Checksum()
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	hash := crypto.Sha256(pw)
 
 	// check equality with previously stored checksum
 	if !reflect.DeepEqual(hash, checksum) {
-		term.Errorln("wrong password.")
-		return
+		return fmt.Errorf("wrong password")
 	}
 
 	// use previously generated random salt for key generation
 	salt, err := dir.Salt()
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	key := crypto.Pbkdf2(pw, salt)
@@ -83,7 +90,7 @@ func login(cmd *cobra.Command, args []string) {
 	err = dir.WriteKey(key)
 	if err == nil {
 		fmt.Println("Logged in.")
-	} else {
-		term.Errorln(err)
 	}
+
+	return err
 }

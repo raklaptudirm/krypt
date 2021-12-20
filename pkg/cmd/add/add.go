@@ -11,50 +11,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package add
 
 import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/internal/auth"
+	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
 	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCmd.AddCommand(addCmd)
+type AddOptions struct {
+	Auth *auth.Auth
 }
 
-var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "add a new password to krypt, encrypted with your data",
-	Args:  cobra.NoArgs,
-	Long: heredoc.Doc(`
-		Add a new password with a name, username and password to
-		krypt. You will later be able to edit and manipulate this
-		password.
-	`),
-	Run: add,
+func NewCmd(f *cmdutil.Factory) *cobra.Command {
+	opts := &AddOptions{
+		Auth: f.Auth,
+	}
+
+	var cmd = &cobra.Command{
+		Use:   "add",
+		Short: "add a new password to krypt, encrypted with your data",
+		Args:  cobra.NoArgs,
+		Long: heredoc.Doc(`
+			Add a new password with a name, username and password to
+			krypt. You will later be able to edit and manipulate this
+			password.
+		`),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return add(opts)
+		},
+	}
+
+	return cmd
 }
 
-func add(cmd *cobra.Command, args []string) {
+func add(opts *AddOptions) error {
 	name, err := term.Input("name: ")
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	user, err := term.Input("username: ")
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	p, err := term.Pass("password: ")
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	password := pass.Password{
@@ -63,11 +72,11 @@ func add(cmd *cobra.Command, args []string) {
 		Password: string(p),
 	}
 
-	err = password.Write()
+	err = password.Write(opts.Auth.Key)
 	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	fmt.Println("Added new password.")
+	return nil
 }

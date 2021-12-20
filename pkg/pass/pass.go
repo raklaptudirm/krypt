@@ -45,17 +45,17 @@ func (p *Password) String() string {
 	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v\n", p.Name, p.UserID, hidden)
 }
 
-func (p *Password) encode() (b []byte, err error) {
+func (p *Password) encode(key []byte) (b []byte, err error) {
 	b = append([]byte(p.Name), '\n')
 	b = append(b, []byte(p.UserID)...)
 	b = append(b, '\n')
 	b = append(b, []byte(p.Password)...)
-	b, err = crypto.EncryptWithKey(b)
+	b, err = crypto.Encrypt(b, key)
 	return
 }
 
-func decode(b []byte) (pass Password, err error) {
-	b, err = crypto.DecryptWithKey(b)
+func decode(b []byte, key []byte) (pass Password, err error) {
+	b, err = crypto.Decrypt(b, key)
 	if err != nil {
 		return
 	}
@@ -74,13 +74,13 @@ func decode(b []byte) (pass Password, err error) {
 	return
 }
 
-func (p *Password) Write() error {
+func (p *Password) Write(key []byte) error {
 	pass, err := dir.Pass()
 	if err != nil {
 		return err
 	}
 
-	data, err := p.encode()
+	data, err := p.encode(key)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ type Filter struct {
 	Data string
 }
 
-func Get(filters ...Filter) (pass map[string]Password, err error) {
+func Get(key []byte, filters ...Filter) (pass map[string]Password, err error) {
 	pass = make(map[string]Password)
 
 	passDir, err := dir.Pass()
@@ -133,7 +133,7 @@ func Get(filters ...Filter) (pass map[string]Password, err error) {
 	for _, file := range files {
 		name := file.Name()
 
-		password, err := get(name)
+		password, err := get(name, key)
 		if err != nil {
 			return pass, err
 		}
@@ -141,6 +141,10 @@ func Get(filters ...Filter) (pass map[string]Password, err error) {
 		if matchAll(password, filters...) {
 			pass[name] = password
 		}
+	}
+
+	if len(pass) == 0 {
+		err = fmt.Errorf("no matching passwords")
 	}
 
 	return
@@ -192,7 +196,7 @@ func match(pass Password, filter Filter) bool {
 	return false
 }
 
-func get(name string) (pass Password, err error) {
+func get(name string, key []byte) (pass Password, err error) {
 	passDir, err := dir.Pass()
 	if err != nil {
 		return
@@ -203,5 +207,5 @@ func get(name string) (pass Password, err error) {
 		return
 	}
 
-	return decode(data)
+	return decode(data, key)
 }

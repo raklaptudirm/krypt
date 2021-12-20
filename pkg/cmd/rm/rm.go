@@ -11,59 +11,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package rm
 
 import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCmd.AddCommand(rmCmd)
+type RmOptions struct {
+	PasswordHash string
 }
 
-var rmCmd = &cobra.Command{
-	Use:   "rm [name]",
-	Short: "remove a password from krypt",
-	Args:  cobra.ExactArgs(1),
-	Long: heredoc.Doc(`
-		Logout clears the file which stores your database key,
-		so that accessing the passwords requires logging in with
-		the master password.
-	`),
-	Run: rm,
+func NewCmd(f *cmdutil.Factory) *cobra.Command {
+	opts := &RmOptions{}
+
+	var cmd = &cobra.Command{
+		Use:   "rm [name]",
+		Short: "remove a password from krypt",
+		Args:  cobra.ExactArgs(1),
+		Long: heredoc.Doc(`
+			Logout clears the file which stores your database key,
+			so that accessing the passwords requires logging in with
+			the master password.
+		`),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO: get password
+			// check for passwords using argument as:
+			// 1) hash
+			// 2) name
+			// 3) username
+			return rm(opts)
+		},
+	}
+
+	return cmd
 }
 
-func rm(cmd *cobra.Command, args []string) {
-	passwords, err := pass.Get(pass.Filter{
-		Type: pass.FilterName,
-		Data: args[0],
-	})
+func rm(opts *RmOptions) error {
+	err := pass.Remove(opts.PasswordHash)
 	if err != nil {
-		term.Errorln(err)
-		return
-	}
-
-	if len(passwords) == 0 {
-		term.Errorln("No passwords matched provided filters.")
-		return
-	}
-
-	var p string
-	for hash := range passwords {
-		p = hash
-		break
-	}
-
-	err = pass.Remove(p)
-	if err != nil {
-		term.Errorln(err)
-		return
+		return err
 	}
 
 	fmt.Println("Deleted password.")
+	return nil
 }
