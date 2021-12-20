@@ -23,7 +23,7 @@ import (
 )
 
 type RmOptions struct {
-	PasswordHash string
+	PassHash string
 }
 
 func NewCmd(f *cmdutil.Factory) *cobra.Command {
@@ -39,11 +39,12 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 			the master password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: get password
-			// check for passwords using argument as:
-			// 1) hash
-			// 2) name
-			// 3) username
+			name, _, err := pass.GetS(args[0], f.Auth.Key)
+			if err != nil {
+				return err
+			}
+
+			opts.PassHash = name
 			return rm(opts)
 		},
 	}
@@ -52,7 +53,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 }
 
 func rm(opts *RmOptions) error {
-	err := pass.Remove(opts.PasswordHash)
+	err := pass.Remove(opts.PassHash)
 	if err != nil {
 		return err
 	}

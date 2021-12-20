@@ -27,7 +27,7 @@ import (
 type EditOptions struct {
 	Auth     *auth.Auth
 	Password *pass.Password
-	PassID   string
+	PassHash string
 }
 
 func NewCmd(f *cmdutil.Factory) *cobra.Command {
@@ -44,11 +44,13 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 			previous one, and store the new one.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: set option password
-			// check for passwords using argument as:
-			// 1) hash
-			// 2) name
-			// 3) username
+			name, pass, err := pass.GetS(args[0], f.Auth.Key)
+			if err != nil {
+				return err
+			}
+
+			opts.Password = pass
+			opts.PassHash = name
 			return edit(opts)
 		},
 	}
@@ -87,7 +89,7 @@ func edit(opts *EditOptions) error {
 		Password: string(p),
 	}
 
-	err = pass.Remove(opts.PassID)
+	err = pass.Remove(opts.PassHash)
 	if err != nil {
 		return err
 	}

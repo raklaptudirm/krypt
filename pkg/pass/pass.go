@@ -43,15 +43,6 @@ func (p *Password) String() string {
 	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v\n", p.Name, p.UserID, hidden)
 }
 
-func (p *Password) encode(key []byte) (b []byte, err error) {
-	b = append([]byte(p.Name), '\n')
-	b = append(b, []byte(p.UserID)...)
-	b = append(b, '\n')
-	b = append(b, []byte(p.Password)...)
-	b, err = crypto.Encrypt(b, key)
-	return
-}
-
 func (p *Password) Write(key []byte) error {
 	pass, err := dir.Pass()
 	if err != nil {
@@ -82,7 +73,16 @@ func Remove(name string) error {
 	return err
 }
 
-func decode(b []byte, key []byte) (pass Password, err error) {
+func (p *Password) encode(key []byte) (b []byte, err error) {
+	b = append([]byte(p.Name), '\n')
+	b = append(b, []byte(p.UserID)...)
+	b = append(b, '\n')
+	b = append(b, []byte(p.Password)...)
+	b, err = crypto.Encrypt(b, key)
+	return
+}
+
+func decode(b []byte, key []byte) (pass *Password, err error) {
 	b, err = crypto.Decrypt(b, key)
 	if err != nil {
 		return
@@ -94,7 +94,7 @@ func decode(b []byte, key []byte) (pass Password, err error) {
 		return
 	}
 
-	pass = Password{
+	pass = &Password{
 		Name:     string(lines[0]),
 		UserID:   string(lines[1]),
 		Password: string(lines[2]),
@@ -102,7 +102,7 @@ func decode(b []byte, key []byte) (pass Password, err error) {
 	return
 }
 
-func get(name string, key []byte) (pass Password, err error) {
+func get(name string, key []byte) (pass *Password, err error) {
 	passDir, err := dir.Pass()
 	if err != nil {
 		return

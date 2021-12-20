@@ -57,8 +57,8 @@ func Get(key []byte, filters ...Filter) (pass map[string]Password, err error) {
 			return pass, err
 		}
 
-		if matchAll(password, filters...) {
-			pass[name] = password
+		if matchAll(*password, filters...) {
+			pass[name] = *password
 		}
 	}
 
@@ -66,6 +66,29 @@ func Get(key []byte, filters ...Filter) (pass map[string]Password, err error) {
 		err = fmt.Errorf("no matching passwords")
 	}
 
+	return
+}
+
+func GetS(ident string, key []byte) (name string, pass *Password, err error) {
+	passDir, err := dir.Pass()
+	if err != nil {
+		return
+	}
+
+	files, err := os.ReadDir(passDir)
+	if err != nil {
+		return
+	}
+
+	for _, file := range files {
+		name = file.Name()
+		if strings.Contains(name, ident) {
+			pass, err = get(ident, key)
+			return
+		}
+	}
+
+	err = fmt.Errorf("no password matched %v", ident)
 	return
 }
 
