@@ -39,6 +39,15 @@ func kryptMain() exitCode {
 	factory := cmdutil.NewFactory()
 	factory.Creds = auth.Get()
 
+	// register user if not already
+	if !factory.Creds.Registered() {
+		err := term.Register()
+		if err != nil {
+			term.Errorln(err)
+			return exitError
+		}
+	}
+
 	rootCmd := root.NewCmd(factory)
 	rootCmd.SetArgs(os.Args[1:])
 
