@@ -17,15 +17,20 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/dir"
 	"github.com/spf13/cobra"
 )
 
-type LogoutOptions struct{}
+type LogoutOptions struct {
+	Auth *auth.Auth
+}
 
 func NewCmd(f *cmdutil.Factory) *cobra.Command {
-	opts := &LogoutOptions{}
+	opts := &LogoutOptions{
+		Auth: f.Auth,
+	}
 
 	var cmd = &cobra.Command{
 		Use:   "logout",
@@ -45,7 +50,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 }
 
 func logout(opts *LogoutOptions) error {
-	loggedIn := dir.KeyExists()
+	loggedIn := len(opts.Auth.Key) != 0
 	if loggedIn {
 		dir.WriteKey([]byte{})
 		fmt.Println("Logged out.")
