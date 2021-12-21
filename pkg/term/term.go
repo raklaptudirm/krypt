@@ -28,17 +28,14 @@ import (
 )
 
 func Error(a ...interface{}) (int, error) {
-	a = append([]interface{}{"krypt:"}, a...)
 	return fmt.Fprint(os.Stderr, a...)
 }
 
 func Errorf(format string, a ...interface{}) (int, error) {
-	format = "krypt: " + format
 	return fmt.Fprintf(os.Stderr, format, a...)
 }
 
 func Errorln(a ...interface{}) (int, error) {
-	a = append([]interface{}{"krypt:"}, a...)
 	return fmt.Fprintln(os.Stderr, a...)
 }
 

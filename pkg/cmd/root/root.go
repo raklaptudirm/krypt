@@ -28,6 +28,9 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:  "krypt command",
 		Args: cobra.NoArgs,
+
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 
 	// help flag

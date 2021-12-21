@@ -36,13 +36,11 @@ func main() {
 }
 
 func kryptMain() exitCode {
-	credentials, err := auth.Get()
-	if err != nil {
-		term.Errorln(err)
-	}
+	factory := cmdutil.NewFactory()
 
-	factory := &cmdutil.Factory{
-		Auth: credentials,
+	credentials, err := auth.Get()
+	if err == nil {
+		factory.Auth = credentials
 	}
 
 	rootCmd := root.NewCmd(factory)
@@ -57,5 +55,6 @@ func kryptMain() exitCode {
 
 func printError(err error, cmd *cobra.Command) {
 	term.Errorln(err)
+	term.Errorln() // a line gap
 	term.Errorln(cmd.UsageString())
 }

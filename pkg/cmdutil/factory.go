@@ -14,10 +14,24 @@
 package cmdutil
 
 import (
+	"os"
+
 	"github.com/raklaptudirm/krypt/internal/auth"
 )
 
 type Factory struct {
 	Executable string
 	Auth       *auth.Auth
+}
+
+func NewFactory() *Factory {
+	exec, err := os.Executable()
+	if err != nil {
+		exec = ""
+	}
+
+	return &Factory{
+		Executable: exec,
+		Auth:       &auth.Auth{},
+	}
 }
