@@ -24,12 +24,12 @@ import (
 )
 
 type LogoutOptions struct {
-	Auth *auth.Auth
+	Creds *auth.Creds
 }
 
 func NewCmd(f *cmdutil.Factory) *cobra.Command {
 	opts := &LogoutOptions{
-		Auth: f.Auth,
+		Creds: f.Creds,
 	}
 
 	var cmd = &cobra.Command{
@@ -50,7 +50,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 }
 
 func logout(opts *LogoutOptions) error {
-	loggedIn := len(opts.Auth.Key) != 0
+	loggedIn := len(opts.Creds.Key) != 0
 	if loggedIn {
 		dir.WriteKey([]byte{})
 		fmt.Println("Logged out.")

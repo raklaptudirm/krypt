@@ -20,8 +20,8 @@ import (
 )
 
 type Factory struct {
-	Executable string
-	Auth       *auth.Auth
+	ExeFile string
+	Creds   *auth.Creds
 }
 
 func NewFactory() *Factory {
@@ -31,7 +31,7 @@ func NewFactory() *Factory {
 	}
 
 	return &Factory{
-		Executable: exec,
-		Auth:       &auth.Auth{},
+		ExeFile: exec,
+		Creds:   &auth.Creds{},
 	}
 }

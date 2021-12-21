@@ -25,14 +25,14 @@ import (
 )
 
 type EditOptions struct {
-	Auth     *auth.Auth
+	Creds    *auth.Creds
 	Password *pass.Password
 	PassHash string
 }
 
 func NewCmd(f *cmdutil.Factory) *cobra.Command {
 	opts := &EditOptions{
-		Auth: f.Auth,
+		Creds: f.Creds,
 	}
 
 	var cmd = &cobra.Command{
@@ -44,7 +44,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 			previous one, and store the new one.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, pass, err := pass.GetS(args[0], f.Auth.Key)
+			name, pass, err := pass.GetS(args[0], f.Creds.Key)
 			if err != nil {
 				return err
 			}
@@ -94,7 +94,7 @@ func edit(opts *EditOptions) error {
 		return err
 	}
 
-	err = password.Write(opts.Auth.Key)
+	err = password.Write(opts.Creds.Key)
 	if err != nil {
 		return err
 	}

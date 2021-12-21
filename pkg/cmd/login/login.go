@@ -15,7 +15,6 @@ package login
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
@@ -28,12 +27,12 @@ import (
 )
 
 type LoginOptions struct {
-	Auth *auth.Auth
+	Creds *auth.Creds
 }
 
 func NewCmd(f *cmdutil.Factory) *cobra.Command {
 	opts := &LoginOptions{
-		Auth: f.Auth,
+		Creds: f.Creds,
 	}
 
 	var cmd = &cobra.Command{
@@ -57,7 +56,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 }
 
 func login(opts *LoginOptions) error {
-	loggedIn := len(opts.Auth.Key) != 0
+	loggedIn := len(opts.Creds.Key) != 0
 	if loggedIn {
 		return fmt.Errorf("already logged in")
 	}
@@ -67,15 +66,7 @@ func login(opts *LoginOptions) error {
 		return err
 	}
 
-	checksum, err := dir.Checksum()
-	if err != nil {
-		return err
-	}
-
-	hash := crypto.Sha256(pw)
-
-	// check equality with previously stored checksum
-	if !reflect.DeepEqual(hash, checksum) {
+	if !opts.Creds.Validate(pw) {
 		return fmt.Errorf("wrong password")
 	}
 

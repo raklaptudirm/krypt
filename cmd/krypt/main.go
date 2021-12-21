@@ -37,11 +37,7 @@ func main() {
 
 func kryptMain() exitCode {
 	factory := cmdutil.NewFactory()
-
-	credentials, err := auth.Get()
-	if err == nil {
-		factory.Auth = credentials
-	}
+	factory.Creds = auth.Get()
 
 	rootCmd := root.NewCmd(factory)
 	rootCmd.SetArgs(os.Args[1:])

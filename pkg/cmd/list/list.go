@@ -24,13 +24,13 @@ import (
 )
 
 type ListOptions struct {
-	Auth    *auth.Auth
+	Creds   *auth.Creds
 	Filters []pass.Filter
 }
 
 func NewCmd(f *cmdutil.Factory) *cobra.Command {
 	opts := &ListOptions{
-		Auth: f.Auth,
+		Creds: f.Creds,
 	}
 
 	var cmd = &cobra.Command{
@@ -51,7 +51,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 }
 
 func list(opts *ListOptions) error {
-	passwords, err := pass.Get(opts.Auth.Key, opts.Filters...)
+	passwords, err := pass.Get(opts.Creds.Key, opts.Filters...)
 	if err != nil {
 		return err
 	}

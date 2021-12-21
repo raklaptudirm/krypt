@@ -13,19 +13,43 @@
 
 package auth
 
-import "github.com/raklaptudirm/krypt/pkg/dir"
+import (
+	"reflect"
 
-type Auth struct {
-	Key []byte
+	"github.com/raklaptudirm/krypt/pkg/crypto"
+	"github.com/raklaptudirm/krypt/pkg/dir"
+)
+
+type Creds struct {
+	Key  []byte
+	Hash []byte
 }
 
-func Get() (*Auth, error) {
-	key, err := dir.Key()
-	if err != nil {
-		return &Auth{}, err
+func (a *Creds) Validate(b []byte) bool {
+	hash := crypto.Sha256(b)
+	return reflect.DeepEqual(hash, a.Hash)
+}
+
+func (a *Creds) Registered() bool {
+	return len(a.Hash) > 0
+}
+
+func (a *Creds) LoggedIn() bool {
+	return len(a.Key) > 0
+}
+
+func Get() *Creds {
+	auth := &Creds{}
+
+	sum, err := dir.Checksum()
+	if err == nil {
+		auth.Hash = sum
 	}
 
-	return &Auth{
-		Key: key,
-	}, nil
+	key, err := dir.Key()
+	if err == nil {
+		auth.Key = key
+	}
+
+	return auth
 }

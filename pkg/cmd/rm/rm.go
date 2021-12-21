@@ -39,7 +39,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 			the master password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, _, err := pass.GetS(args[0], f.Auth.Key)
+			name, _, err := pass.GetS(args[0], f.Creds.Key)
 			if err != nil {
 				return err
 			}
