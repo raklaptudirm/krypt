@@ -15,12 +15,11 @@ package crypto
 
 import (
 	"fmt"
-	"time"
 
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha256"
-	"math/rand"
 
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -95,9 +94,4 @@ func RandBytes(len int) []byte {
 	b := make([]byte, len)
 	rand.Read(b)
 	return b
-}
-
-func init() {
-	// set rand seed on init
-	rand.Seed(time.Now().UnixNano())
 }
