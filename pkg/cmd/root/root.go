@@ -20,11 +20,12 @@ import (
 	"github.com/raklaptudirm/krypt/pkg/cmd/login"
 	"github.com/raklaptudirm/krypt/pkg/cmd/logout"
 	"github.com/raklaptudirm/krypt/pkg/cmd/rm"
+	"github.com/raklaptudirm/krypt/pkg/cmd/version"
 	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(f *cmdutil.Factory) *cobra.Command {
+func NewCmd(f *cmdutil.Factory, versionNum, buildDate string) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:  "krypt command",
 		Args: cobra.NoArgs,
@@ -33,8 +34,13 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 		SilenceUsage:  true,
 	}
 
-	// help flag
-	cmd.PersistentFlags().Bool("help", false, "show help for command")
+	// global flags
+	cmd.PersistentFlags().BoolP("help", "h", false, "show help for command")
+	cmd.PersistentFlags().BoolP("version", "v", false, "show software version")
+
+	versionStr := version.Format(versionNum, buildDate)
+	cmd.SetVersionTemplate(versionStr)
+	cmd.Version = versionStr
 
 	// child commands
 	cmd.AddCommand(rm.NewCmd(f))
@@ -43,6 +49,7 @@ func NewCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd.AddCommand(list.NewCmd(f))
 	cmd.AddCommand(login.NewCmd(f))
 	cmd.AddCommand(logout.NewCmd(f))
+	cmd.AddCommand(version.NewCmd(versionNum, buildDate))
 
 	return cmd
 }

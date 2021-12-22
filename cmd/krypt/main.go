@@ -17,6 +17,7 @@ import (
 	"os"
 
 	"github.com/raklaptudirm/krypt/internal/auth"
+	"github.com/raklaptudirm/krypt/internal/build"
 	"github.com/raklaptudirm/krypt/pkg/cmd/root"
 	"github.com/raklaptudirm/krypt/pkg/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/term"
@@ -48,7 +49,7 @@ func kryptMain() exitCode {
 		}
 	}
 
-	rootCmd := root.NewCmd(factory)
+	rootCmd := root.NewCmd(factory, build.Version, build.Date)
 	rootCmd.SetArgs(os.Args[1:])
 
 	if cmd, err := rootCmd.ExecuteC(); err != nil {
