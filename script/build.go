@@ -16,7 +16,7 @@ func main() {
 	// set env variables from args
 	for _, arg := range os.Args[1:] {
 		idx := strings.IndexRune(arg, '=')
-		if idx >= 0 {
+		if idx >= 0 { // var=value
 			os.Setenv(arg[:idx], arg[idx+1:])
 			continue
 		}
@@ -24,6 +24,7 @@ func main() {
 		args = append(args, arg)
 	}
 
+	// remaining args are tasks
 	for _, arg := range args {
 		f, ok := tasks[arg]
 		if !ok {
@@ -56,7 +57,7 @@ func build() error {
 func exe() string {
 	exe := "bin/krypt"
 	if runtime.GOOS == "windows" {
-		exe += ".exe"
+		exe += ".exe" // bin/krypt.exe
 	}
 
 	return exe
@@ -74,7 +75,7 @@ func version() string {
 
 func date() string {
 	t := time.Now()
-	return t.Format("2006-01-02")
+	return t.Format("2006-01-02") // YYYY-MM-DD
 }
 
 func run(args ...string) error {
@@ -89,7 +90,8 @@ func run(args ...string) error {
 func runOutput(args ...string) (string, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 
-	cmd.Stderr = ioutil.Discard
-	out, err := cmd.Output()
+	cmd.Stderr = ioutil.Discard // discard the stderr
+	out, err := cmd.Output()    // copy the stdout
+
 	return strings.TrimSuffix(string(out), "\n"), err
 }
