@@ -26,7 +26,7 @@ type RmOptions struct {
 	PassHash string
 }
 
-func NewCmd(f *cmdutil.Factory) *cobra.Command {
+func NewCmd(f *cmdutil.Context) *cobra.Command {
 	opts := &RmOptions{}
 
 	var cmd = &cobra.Command{

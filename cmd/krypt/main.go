@@ -37,7 +37,7 @@ func main() {
 }
 
 func kryptMain() exitCode {
-	factory := cmdutil.NewFactory()
+	factory := cmdutil.NewContext()
 	factory.Creds = auth.Get()
 
 	// register user if not already

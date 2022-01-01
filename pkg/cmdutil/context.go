@@ -19,18 +19,18 @@ import (
 	"github.com/raklaptudirm/krypt/internal/auth"
 )
 
-type Factory struct {
+type Context struct {
 	ExeFile string
 	Creds   *auth.Creds
 }
 
-func NewFactory() *Factory {
+func NewContext() *Context {
 	exec, err := os.Executable()
 	if err != nil {
 		exec = ""
 	}
 
-	return &Factory{
+	return &Context{
 		ExeFile: exec,
 		Creds:   &auth.Creds{},
 	}

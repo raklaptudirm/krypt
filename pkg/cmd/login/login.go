@@ -30,7 +30,7 @@ type LoginOptions struct {
 	Creds *auth.Creds
 }
 
-func NewCmd(f *cmdutil.Factory) *cobra.Command {
+func NewCmd(f *cmdutil.Context) *cobra.Command {
 	opts := &LoginOptions{
 		Creds: f.Creds,
 	}

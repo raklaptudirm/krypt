@@ -28,7 +28,7 @@ type ListOptions struct {
 	Filters []pass.Filter
 }
 
-func NewCmd(f *cmdutil.Factory) *cobra.Command {
+func NewCmd(f *cmdutil.Context) *cobra.Command {
 	opts := &ListOptions{
 		Creds: f.Creds,
 	}

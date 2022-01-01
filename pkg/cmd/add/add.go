@@ -28,7 +28,7 @@ type AddOptions struct {
 	Creds *auth.Creds
 }
 
-func NewCmd(f *cmdutil.Factory) *cobra.Command {
+func NewCmd(f *cmdutil.Context) *cobra.Command {
 	opts := &AddOptions{
 		Creds: f.Creds,
 	}

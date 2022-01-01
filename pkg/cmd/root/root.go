@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(f *cmdutil.Factory, versionNum, buildDate string) *cobra.Command {
+func NewCmd(f *cmdutil.Context, versionNum, buildDate string) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:  "krypt command",
 		Args: cobra.NoArgs,

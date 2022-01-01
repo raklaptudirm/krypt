@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
@@ -90,8 +89,8 @@ func run(args ...string) error {
 func runOutput(args ...string) (string, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 
-	cmd.Stderr = ioutil.Discard // discard the stderr
-	out, err := cmd.Output()    // copy the stdout
+	cmd.Stderr = os.Stderr   // print any errors
+	out, err := cmd.Output() // copy the stdout
 
 	return strings.TrimSuffix(string(out), "\n"), err
 }

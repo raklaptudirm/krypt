@@ -30,7 +30,7 @@ type EditOptions struct {
 	PassHash string
 }
 
-func NewCmd(f *cmdutil.Factory) *cobra.Command {
+func NewCmd(f *cmdutil.Context) *cobra.Command {
 	opts := &EditOptions{
 		Creds: f.Creds,
 	}
