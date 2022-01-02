@@ -14,6 +14,8 @@
 package main
 
 import (
+	"errors"
+	"io"
 	"os"
 
 	"github.com/raklaptudirm/krypt/internal/auth"
@@ -27,8 +29,9 @@ import (
 type exitCode int
 
 const (
-	exitOkay  exitCode = 0
-	exitError exitCode = 1
+	exitOkay   exitCode = 0
+	exitError  exitCode = 1
+	exitIntrpt exitCode = 2
 )
 
 func main() {
@@ -52,14 +55,25 @@ func kryptMain() exitCode {
 	rootCmd := root.NewCmd(factory, build.Version, build.Date)
 	rootCmd.SetArgs(os.Args[1:])
 
-	if cmd, err := rootCmd.ExecuteC(); err != nil {
-		printError(err, cmd)
-		return exitError
-	}
-	return exitOkay
+	return handleError(rootCmd.ExecuteC())
 }
 
-func printError(err error, cmd *cobra.Command) {
+func handleError(cmd *cobra.Command, err error) exitCode {
+	if err == nil {
+		return exitOkay
+	}
+
+	switch {
+	case errors.Is(err, io.EOF):
+		term.Errorln("[interrupted]")
+		return exitIntrpt
+	}
+
+	printError(cmd, err)
+	return exitError
+}
+
+func printError(cmd *cobra.Command, err error) {
 	term.Errorln(err)
 	term.Errorln() // a line gap
 	term.Errorln(cmd.UsageString())
