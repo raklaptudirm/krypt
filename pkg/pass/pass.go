@@ -54,7 +54,7 @@ func (p *Password) Write(key []byte) error {
 		return err
 	}
 
-	hash := crypto.Sha256(data)
+	hash := crypto.Checksum(data)
 	path := pass + "/" + hex.EncodeToString(hash)
 
 	err = os.WriteFile(path, data, 0644)

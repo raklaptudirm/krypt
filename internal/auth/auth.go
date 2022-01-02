@@ -26,7 +26,7 @@ type Creds struct {
 }
 
 func (a *Creds) Validate(b []byte) bool {
-	hash := crypto.Sha256(b)
+	hash := crypto.Checksum(b)
 	return reflect.DeepEqual(hash, a.Hash)
 }
 

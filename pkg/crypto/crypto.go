@@ -24,9 +24,9 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// Sha256 wraps the sha256.Sum256 method to return a []byte instead of
+// Checksum wraps the sha256.Sum256 method to return a []byte instead of
 // a [32]byte array.
-func Sha256(data []byte) []byte {
+func Checksum(data []byte) []byte {
 	checksum := sha256.Sum256(data)
 	return checksum[:]
 }
@@ -77,9 +77,9 @@ func Decrypt(ct []byte, key []byte) (clt []byte, err error) {
 	return
 }
 
-// Pbkdf2 generates an AES algorithm key from pw, using the SHA-256 hash
+// DeriveKey generates an AES algorithm key from pw, using the SHA-256 hash
 // algorithm and the provided salt.
-func Pbkdf2(pw []byte, salt []byte) (key []byte) {
+func DeriveKey(pw []byte, salt []byte) (key []byte) {
 	iter := 4096 // no of pbkdf2 iterations
 	klen := 32   // length of key in bytes
 

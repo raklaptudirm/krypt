@@ -93,7 +93,7 @@ password: // main password loop
 	// passwords are equal
 
 	salt := crypto.RandBytes(8)
-	hash := crypto.Sha256(pw1)
+	hash := crypto.Checksum(pw1)
 
 	err = dir.WriteSalt(salt)
 	if err != nil {

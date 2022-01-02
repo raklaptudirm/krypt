@@ -76,7 +76,7 @@ func login(opts *LoginOptions) error {
 		return err
 	}
 
-	key := crypto.Pbkdf2(pw, salt)
+	key := crypto.DeriveKey(pw, salt)
 
 	err = dir.WriteKey(key)
 	if err == nil {
