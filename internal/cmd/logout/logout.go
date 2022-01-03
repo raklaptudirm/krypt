@@ -11,53 +11,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package rm
+package logout
 
 import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
-	"github.com/raklaptudirm/krypt/pkg/pass"
+	"github.com/raklaptudirm/krypt/internal/auth"
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
+	"github.com/raklaptudirm/krypt/pkg/dir"
 	"github.com/spf13/cobra"
 )
 
-type RmOptions struct {
-	PassHash string
+type LogoutOptions struct {
+	Creds *auth.Creds
 }
 
-func NewCmd(f *cmdutil.Context) *cobra.Command {
-	opts := &RmOptions{}
+func NewCmd(c *cmdutil.Context) *cobra.Command {
+	opts := &LogoutOptions{
+		Creds: c.Creds,
+	}
 
 	var cmd = &cobra.Command{
-		Use:   "rm [name]",
-		Short: "remove a password from krypt",
-		Args:  cobra.ExactArgs(1),
+		Use:   "logout",
+		Short: "log off krypt by removing the encryption key file",
+		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
 			Logout clears the file which stores your database key,
 			so that accessing the passwords requires logging in with
 			the master password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, _, err := pass.GetS(args[0], f.Creds.Key)
-			if err != nil {
-				return err
-			}
-
-			opts.PassHash = name
-			return rm(opts)
+			return logout(opts)
 		},
 	}
 
 	return cmd
 }
 
-func rm(opts *RmOptions) error {
-	err := pass.Remove(opts.PassHash)
-	if err != nil {
-		return err
+func logout(opts *LogoutOptions) error {
+	loggedIn := len(opts.Creds.Key) != 0
+	if loggedIn {
+		dir.WriteKey([]byte{})
+		fmt.Println("Logged out.")
+		return nil
 	}
 
-	fmt.Println("Deleted password.")
-	return nil
+	// not logged in
+	return fmt.Errorf("you are not logged in")
 }

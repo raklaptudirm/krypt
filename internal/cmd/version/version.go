@@ -16,17 +16,17 @@ package version
 import (
 	"fmt"
 
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(f *cmdutil.Context) *cobra.Command {
+func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "version",
 		Short: "show the krypt software version",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Print(f.Version.String())
+			fmt.Print(c.Version.String())
 		},
 	}
 

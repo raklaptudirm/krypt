@@ -20,8 +20,8 @@ import (
 
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/build"
-	"github.com/raklaptudirm/krypt/pkg/cmd/root"
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
+	"github.com/raklaptudirm/krypt/internal/cmd/root"
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
@@ -40,12 +40,12 @@ func main() {
 }
 
 func kryptMain() exitCode {
-	factory := cmdutil.NewContext()
-	factory.Creds = auth.Get()
-	factory.Version = cmdutil.NewVersion(build.Version, build.Date)
+	context := cmdutil.NewContext()
+	context.Creds = auth.Get()
+	context.Version = cmdutil.NewVersion(build.Version, build.Date)
 
 	// register user if not already
-	if !factory.Creds.Registered() {
+	if !context.Creds.Registered() {
 		err := term.Register()
 		if err != nil {
 			term.Errorln(err)
@@ -53,7 +53,7 @@ func kryptMain() exitCode {
 		}
 	}
 
-	rootCmd := root.NewCmd(factory)
+	rootCmd := root.NewCmd(context)
 	rootCmd.SetArgs(os.Args[1:])
 
 	return handleError(rootCmd.ExecuteC())

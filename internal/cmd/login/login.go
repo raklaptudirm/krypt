@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
 	"github.com/raklaptudirm/krypt/pkg/dir"
 	"github.com/raklaptudirm/krypt/pkg/term"
@@ -30,9 +30,9 @@ type LoginOptions struct {
 	Creds *auth.Creds
 }
 
-func NewCmd(f *cmdutil.Context) *cobra.Command {
+func NewCmd(c *cmdutil.Context) *cobra.Command {
 	opts := &LoginOptions{
-		Creds: f.Creds,
+		Creds: c.Creds,
 	}
 
 	var cmd = &cobra.Command{

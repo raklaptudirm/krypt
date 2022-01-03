@@ -18,7 +18,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
 	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
@@ -30,9 +30,9 @@ type EditOptions struct {
 	PassHash string
 }
 
-func NewCmd(f *cmdutil.Context) *cobra.Command {
+func NewCmd(c *cmdutil.Context) *cobra.Command {
 	opts := &EditOptions{
-		Creds: f.Creds,
+		Creds: c.Creds,
 	}
 
 	var cmd = &cobra.Command{
@@ -44,7 +44,7 @@ func NewCmd(f *cmdutil.Context) *cobra.Command {
 			previous one, and store the new one.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, pass, err := pass.GetS(args[0], f.Creds.Key)
+			name, pass, err := pass.GetS(args[0], c.Creds.Key)
 			if err != nil {
 				return err
 			}

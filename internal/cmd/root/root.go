@@ -14,18 +14,18 @@
 package root
 
 import (
-	"github.com/raklaptudirm/krypt/pkg/cmd/add"
-	"github.com/raklaptudirm/krypt/pkg/cmd/edit"
-	"github.com/raklaptudirm/krypt/pkg/cmd/list"
-	"github.com/raklaptudirm/krypt/pkg/cmd/login"
-	"github.com/raklaptudirm/krypt/pkg/cmd/logout"
-	"github.com/raklaptudirm/krypt/pkg/cmd/rm"
-	"github.com/raklaptudirm/krypt/pkg/cmd/version"
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
+	"github.com/raklaptudirm/krypt/internal/cmd/add"
+	"github.com/raklaptudirm/krypt/internal/cmd/edit"
+	"github.com/raklaptudirm/krypt/internal/cmd/list"
+	"github.com/raklaptudirm/krypt/internal/cmd/login"
+	"github.com/raklaptudirm/krypt/internal/cmd/logout"
+	"github.com/raklaptudirm/krypt/internal/cmd/rm"
+	"github.com/raklaptudirm/krypt/internal/cmd/version"
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(f *cmdutil.Context) *cobra.Command {
+func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:  "krypt command",
 		Args: cobra.NoArgs,
@@ -38,18 +38,18 @@ func NewCmd(f *cmdutil.Context) *cobra.Command {
 	cmd.PersistentFlags().BoolP("help", "h", false, "show help for command")
 	cmd.PersistentFlags().BoolP("version", "v", false, "show software version")
 
-	versionStr := f.Version.String()
+	versionStr := c.Version.String()
 	cmd.SetVersionTemplate(versionStr)
 	cmd.Version = versionStr
 
 	// child commands
-	cmd.AddCommand(rm.NewCmd(f))
-	cmd.AddCommand(add.NewCmd(f))
-	cmd.AddCommand(edit.NewCmd(f))
-	cmd.AddCommand(list.NewCmd(f))
-	cmd.AddCommand(login.NewCmd(f))
-	cmd.AddCommand(logout.NewCmd(f))
-	cmd.AddCommand(version.NewCmd(f))
+	cmd.AddCommand(rm.NewCmd(c))
+	cmd.AddCommand(add.NewCmd(c))
+	cmd.AddCommand(edit.NewCmd(c))
+	cmd.AddCommand(list.NewCmd(c))
+	cmd.AddCommand(login.NewCmd(c))
+	cmd.AddCommand(logout.NewCmd(c))
+	cmd.AddCommand(version.NewCmd(c))
 
 	return cmd
 }

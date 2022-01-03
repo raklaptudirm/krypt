@@ -11,53 +11,72 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package list
+package add
 
 import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
+	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
-type ListOptions struct {
-	Creds   *auth.Creds
-	Filters []pass.Filter
+type AddOptions struct {
+	Creds *auth.Creds
 }
 
-func NewCmd(f *cmdutil.Context) *cobra.Command {
-	opts := &ListOptions{
-		Creds: f.Creds,
+func NewCmd(c *cmdutil.Context) *cobra.Command {
+	opts := &AddOptions{
+		Creds: c.Creds,
 	}
 
 	var cmd = &cobra.Command{
-		Use:   "list [name]",
-		Short: "un-encrypt and fetch a password from krypt using the filters",
+		Use:   "add",
+		Short: "add a new password to krypt, encrypted with your data",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
-			List all the passwords which match the provided filters. If no filters
-			are provided, all the passwords are listed.
+			Add a new password with a name, username and password to
+			krypt. You will later be able to edit and manipulate this
+			password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: map flags to password filters
-			return list(opts)
+			return add(opts)
 		},
 	}
 
 	return cmd
 }
 
-func list(opts *ListOptions) error {
-	passwords, err := pass.Get(opts.Creds.Key, opts.Filters...)
+func add(opts *AddOptions) error {
+	name, err := term.Input("name: ")
 	if err != nil {
 		return err
 	}
 
-	for _, password := range passwords {
-		fmt.Println(password.String())
+	user, err := term.Input("username: ")
+	if err != nil {
+		return err
 	}
+
+	p, err := term.Pass("password: ")
+	if err != nil {
+		return err
+	}
+
+	password := pass.Password{
+		Name:     name,
+		UserID:   user,
+		Password: string(p),
+	}
+
+	err = password.Write(opts.Creds.Key)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Added new password.")
 	return nil
 }
