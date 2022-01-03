@@ -35,11 +35,11 @@ const (
 )
 
 func main() {
-	exit := kryptMain()
+	exit := m(os.Args)
 	os.Exit(int(exit))
 }
 
-func kryptMain() exitCode {
+func m(args []string) exitCode {
 	context := cmdutil.NewContext()
 	context.Creds = auth.Get()
 	context.Version = cmdutil.NewVersion(build.Version, build.Date)
@@ -54,7 +54,7 @@ func kryptMain() exitCode {
 	}
 
 	rootCmd := root.NewCmd(context)
-	rootCmd.SetArgs(os.Args[1:])
+	rootCmd.SetArgs(args[1:])
 
 	return handleError(rootCmd.ExecuteC())
 }
