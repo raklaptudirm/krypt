@@ -42,6 +42,7 @@ func main() {
 func kryptMain() exitCode {
 	factory := cmdutil.NewContext()
 	factory.Creds = auth.Get()
+	factory.Version = cmdutil.NewVersion(build.Version, build.Date)
 
 	// register user if not already
 	if !factory.Creds.Registered() {
@@ -52,7 +53,7 @@ func kryptMain() exitCode {
 		}
 	}
 
-	rootCmd := root.NewCmd(factory, build.Version, build.Date)
+	rootCmd := root.NewCmd(factory)
 	rootCmd.SetArgs(os.Args[1:])
 
 	return handleError(rootCmd.ExecuteC())

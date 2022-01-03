@@ -11,24 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package version
+package cmdutil
 
-import (
-	"fmt"
+import "fmt"
 
-	"github.com/raklaptudirm/krypt/pkg/cmdutil"
-	"github.com/spf13/cobra"
-)
+type Version struct {
+	version   string
+	buildDate string
+}
 
-func NewCmd(f *cmdutil.Context) *cobra.Command {
-	var cmd = &cobra.Command{
-		Use:   "version",
-		Short: "show the krypt software version",
-		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Print(f.Version.String())
-		},
+func (v *Version) String() string {
+	if v.buildDate == "" {
+		return v.version
 	}
 
-	return cmd
+	return fmt.Sprintf("krypt %v-%v\n", v.version, v.buildDate)
+}
+
+func NewVersion(v, d string) *Version {
+	return &Version{
+		version:   v,
+		buildDate: d,
+	}
 }

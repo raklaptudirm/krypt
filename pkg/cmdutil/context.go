@@ -22,6 +22,7 @@ import (
 type Context struct {
 	ExeFile string
 	Creds   *auth.Creds
+	Version *Version
 }
 
 func NewContext() *Context {

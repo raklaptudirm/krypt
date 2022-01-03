@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(f *cmdutil.Context, versionNum, buildDate string) *cobra.Command {
+func NewCmd(f *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:  "krypt command",
 		Args: cobra.NoArgs,
@@ -38,7 +38,7 @@ func NewCmd(f *cmdutil.Context, versionNum, buildDate string) *cobra.Command {
 	cmd.PersistentFlags().BoolP("help", "h", false, "show help for command")
 	cmd.PersistentFlags().BoolP("version", "v", false, "show software version")
 
-	versionStr := version.Format(versionNum, buildDate)
+	versionStr := f.Version.String()
 	cmd.SetVersionTemplate(versionStr)
 	cmd.Version = versionStr
 
@@ -49,7 +49,7 @@ func NewCmd(f *cmdutil.Context, versionNum, buildDate string) *cobra.Command {
 	cmd.AddCommand(list.NewCmd(f))
 	cmd.AddCommand(login.NewCmd(f))
 	cmd.AddCommand(logout.NewCmd(f))
-	cmd.AddCommand(version.NewCmd(versionNum, buildDate))
+	cmd.AddCommand(version.NewCmd(f))
 
 	return cmd
 }
