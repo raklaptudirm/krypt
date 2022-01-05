@@ -82,8 +82,13 @@ func GetS(ident string, key []byte) (name string, pass *Password, err error) {
 
 	for _, file := range files {
 		name = file.Name()
-		if strings.Contains(name, ident) {
+		if strings.HasPrefix(name, ident) {
 			pass, err = get(ident, key)
+			return
+		}
+
+		pass, err = get(name, key)
+		if err == nil && pass.Name == ident {
 			return
 		}
 	}
