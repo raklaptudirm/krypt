@@ -24,8 +24,8 @@ import (
 )
 
 type ListOptions struct {
-	Creds   *auth.Creds
-	Filters []pass.Filter
+	Creds *auth.Creds
+	Ident string
 }
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
@@ -36,13 +36,13 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "list [name]",
 		Short: "un-encrypt and fetch a password from krypt using the filters",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(1),
 		Long: heredoc.Doc(`
 			List all the passwords which match the provided filters. If no filters
 			are provided, all the passwords are listed.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: map flags to password filters
+			opts.Ident = args[0]
 			return list(opts)
 		},
 	}
@@ -55,13 +55,11 @@ func list(opts *ListOptions) error {
 		return cmdutil.ErrNoLogin
 	}
 
-	passwords, err := pass.Get(opts.Creds.Key, opts.Filters...)
+	_, pass, err := pass.GetS(opts.Ident, opts.Creds.Key)
 	if err != nil {
 		return err
 	}
 
-	for _, password := range passwords {
-		fmt.Println(password.String())
-	}
+	fmt.Println(pass.String())
 	return nil
 }
