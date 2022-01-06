@@ -59,6 +59,10 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 }
 
 func edit(opts *EditOptions) error {
+	if !opts.Creds.LoggedIn() {
+		return cmdutil.ErrNoLogin
+	}
+
 	name, err := term.Input("name: ")
 	if err != nil {
 		return err

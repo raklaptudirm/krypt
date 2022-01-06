@@ -32,6 +32,7 @@ const (
 	exitOkay   exitCode = 0
 	exitError  exitCode = 1
 	exitIntrpt exitCode = 2
+	exitAuth   exitCode = 4
 )
 
 func main() {
@@ -68,6 +69,9 @@ func handleError(cmd *cobra.Command, err error) exitCode {
 	case errors.Is(err, io.EOF):
 		term.Errorln("[interrupted]")
 		return exitIntrpt
+	case errors.Is(err, cmdutil.ErrNoLogin):
+		term.Errorln(err)
+		return exitAuth
 	}
 
 	printError(cmd, err)

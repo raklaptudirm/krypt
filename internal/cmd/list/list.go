@@ -51,6 +51,10 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 }
 
 func list(opts *ListOptions) error {
+	if !opts.Creds.LoggedIn() {
+		return cmdutil.ErrNoLogin
+	}
+
 	passwords, err := pass.Get(opts.Creds.Key, opts.Filters...)
 	if err != nil {
 		return err

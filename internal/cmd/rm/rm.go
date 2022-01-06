@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
 	"github.com/spf13/cobra"
@@ -24,10 +25,13 @@ import (
 
 type RmOptions struct {
 	PassHash string
+	Creds    *auth.Creds
 }
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
-	opts := &RmOptions{}
+	opts := &RmOptions{
+		Creds: c.Creds,
+	}
 
 	var cmd = &cobra.Command{
 		Use:   "rm [name]",
@@ -53,6 +57,10 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 }
 
 func rm(opts *RmOptions) error {
+	if !opts.Creds.LoggedIn() {
+		return cmdutil.ErrNoLogin
+	}
+
 	err := pass.Remove(opts.PassHash)
 	if err != nil {
 		return err
