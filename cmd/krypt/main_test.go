@@ -5,6 +5,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +31,11 @@ func TestHandleError(t *testing.T) {
 			name: "test exitcode for eof error",
 			err:  io.EOF,
 			code: exitIntrpt,
+		},
+		{
+			name: "test exitcode for auth error",
+			err:  cmdutil.ErrNoLogin,
+			code: exitAuth,
 		},
 	}
 
