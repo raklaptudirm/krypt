@@ -18,7 +18,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/build"
 	"github.com/raklaptudirm/krypt/internal/cmd/root"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
@@ -42,7 +41,6 @@ func main() {
 
 func m(args []string) exitCode {
 	context := cmdutil.NewContext()
-	context.Creds = auth.Get()
 	context.Version = cmdutil.NewVersion(build.Version, build.Date)
 
 	// register user if not already

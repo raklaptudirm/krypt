@@ -24,13 +24,15 @@ import (
 )
 
 type RmOptions struct {
-	PassHash string
+	Checksum []byte
 	Creds    *auth.Creds
+	Pass     pass.Manager
 }
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	opts := &RmOptions{
 		Creds: c.Creds,
+		Pass:  c.PassManager,
 	}
 
 	var cmd = &cobra.Command{
@@ -43,12 +45,12 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			the master password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, _, err := pass.GetS(args[0], c.Creds.Key)
+			pass, err := pass.GetS(opts.Pass, args[0], c.Creds.Key)
 			if err != nil {
 				return err
 			}
 
-			opts.PassHash = name
+			opts.Checksum = pass.Checksum
 			return rm(opts)
 		},
 	}
@@ -61,7 +63,7 @@ func rm(opts *RmOptions) error {
 		return cmdutil.ErrNoLogin
 	}
 
-	err := pass.Remove(opts.PassHash)
+	err := opts.Pass.Delete(opts.Checksum)
 	if err != nil {
 		return err
 	}

@@ -22,17 +22,18 @@ import (
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"github.com/raklaptudirm/krypt/pkg/dir"
 	"github.com/raklaptudirm/krypt/pkg/term"
 )
 
 type LoginOptions struct {
 	Creds *auth.Creds
+	Auth  auth.Manager
 }
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	opts := &LoginOptions{
 		Creds: c.Creds,
+		Auth:  c.AuthManager,
 	}
 
 	var cmd = &cobra.Command{
@@ -71,14 +72,14 @@ func login(opts *LoginOptions) error {
 	}
 
 	// use previously generated random salt for key generation
-	salt, err := dir.Salt()
+	salt, err := opts.Auth.Salt()
 	if err != nil {
 		return err
 	}
 
 	key := crypto.DeriveKey(pw, salt)
 
-	err = dir.WriteKey(key)
+	err = opts.Auth.SetKey(key)
 	if err == nil {
 		fmt.Println("Logged in.")
 	}

@@ -26,11 +26,13 @@ import (
 
 type AddOptions struct {
 	Creds *auth.Creds
+	Pass  pass.Manager
 }
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	opts := &AddOptions{
 		Creds: c.Creds,
+		Pass:  c.PassManager,
 	}
 
 	var cmd = &cobra.Command{
@@ -76,7 +78,7 @@ func add(opts *AddOptions) error {
 		Password: string(p),
 	}
 
-	err = password.Write(opts.Creds.Key)
+	err = password.Write(opts.Pass, opts.Creds.Key)
 	if err != nil {
 		return err
 	}

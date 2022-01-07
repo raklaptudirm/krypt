@@ -17,7 +17,6 @@ import (
 	"reflect"
 
 	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"github.com/raklaptudirm/krypt/pkg/dir"
 )
 
 type Creds struct {
@@ -38,15 +37,15 @@ func (a *Creds) LoggedIn() bool {
 	return len(a.Key) > 0
 }
 
-func Get() *Creds {
+func Get(man Manager) *Creds {
 	auth := &Creds{}
 
-	sum, err := dir.Checksum()
+	sum, err := man.Checksum()
 	if err == nil {
 		auth.Hash = sum
 	}
 
-	key, err := dir.Key()
+	key, err := man.Key()
 	if err == nil {
 		auth.Key = key
 	}

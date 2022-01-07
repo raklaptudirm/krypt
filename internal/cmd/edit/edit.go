@@ -27,12 +27,13 @@ import (
 type EditOptions struct {
 	Creds    *auth.Creds
 	Password *pass.Password
-	PassHash string
+	Pass     pass.Manager
 }
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	opts := &EditOptions{
 		Creds: c.Creds,
+		Pass:  c.PassManager,
 	}
 
 	var cmd = &cobra.Command{
@@ -44,13 +45,12 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			previous one, and store the new one.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, pass, err := pass.GetS(args[0], c.Creds.Key)
+			pass, err := pass.GetS(c.PassManager, args[0], c.Creds.Key)
 			if err != nil {
 				return err
 			}
 
 			opts.Password = pass
-			opts.PassHash = name
 			return edit(opts)
 		},
 	}
@@ -93,12 +93,12 @@ func edit(opts *EditOptions) error {
 		Password: string(p),
 	}
 
-	err = pass.Remove(opts.PassHash)
+	err = opts.Pass.Delete(opts.Password.Checksum)
 	if err != nil {
 		return err
 	}
 
-	err = password.Write(opts.Creds.Key)
+	err = password.Write(opts.Pass, opts.Creds.Key)
 	if err != nil {
 		return err
 	}

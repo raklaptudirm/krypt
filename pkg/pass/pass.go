@@ -17,11 +17,9 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"github.com/raklaptudirm/krypt/pkg/dir"
 )
 
 type ErrDecode struct {
@@ -36,41 +34,7 @@ type Password struct {
 	Name     string
 	UserID   string
 	Password string
-}
-
-func (p *Password) String() string {
-	hidden := strings.Repeat("*", len(p.Password))
-	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v\n", p.Name, p.UserID, hidden)
-}
-
-func (p *Password) Write(key []byte) error {
-	pass, err := dir.Pass()
-	if err != nil {
-		return err
-	}
-
-	data, err := p.encode(key)
-	if err != nil {
-		return err
-	}
-
-	hash := crypto.Checksum(data)
-	path := pass + "/" + hex.EncodeToString(hash)
-
-	err = os.WriteFile(path, data, 0644)
-	return err
-}
-
-func Remove(name string) error {
-	pass, err := dir.Pass()
-	if err != nil {
-		return err
-	}
-
-	path := pass + "/" + name
-
-	err = os.Remove(path)
-	return err
+	Checksum []byte
 }
 
 func (p *Password) encode(key []byte) (b []byte, err error) {
@@ -83,6 +47,7 @@ func (p *Password) encode(key []byte) (b []byte, err error) {
 }
 
 func decode(b []byte, key []byte) (pass *Password, err error) {
+	hash := crypto.Checksum(b)
 	b, err = crypto.Decrypt(b, key)
 	if err != nil {
 		return
@@ -98,20 +63,46 @@ func decode(b []byte, key []byte) (pass *Password, err error) {
 		Name:     string(lines[0]),
 		UserID:   string(lines[1]),
 		Password: string(lines[2]),
+		Checksum: hash,
 	}
 	return
 }
 
-func get(name string, key []byte) (pass *Password, err error) {
-	passDir, err := dir.Pass()
+func (p *Password) String() string {
+	hidden := strings.Repeat("*", len(p.Password))
+	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v\n", p.Name, p.UserID, hidden)
+}
+
+func (p *Password) Write(man Manager, key []byte) error {
+	data, err := p.encode(key)
+	if err != nil {
+		return err
+	}
+
+	err = man.Write(data)
+	return err
+}
+
+func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
+	pbs, err := man.Passwords()
 	if err != nil {
 		return
 	}
 
-	data, err := os.ReadFile(passDir + "/" + name)
-	if err != nil {
-		return
+	for _, pb := range pbs {
+		hash := hex.EncodeToString((crypto.Checksum(pb)))
+
+		if strings.HasPrefix(hash, ident) {
+			pass, err = decode(pb, key)
+			return
+		}
+
+		pass, err = decode(pb, key)
+		if err == nil && strings.Contains(pass.Name, ident) {
+			return
+		}
 	}
 
-	return decode(data, key)
+	err = fmt.Errorf("no password matched %v", ident)
+	return
 }
