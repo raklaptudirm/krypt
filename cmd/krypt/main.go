@@ -45,7 +45,7 @@ func m(args []string) exitCode {
 
 	// register user if not already
 	if !context.Creds.Registered() {
-		err := term.Register()
+		err := term.Register(context.AuthManager)
 		if err != nil {
 			term.Errorln(err)
 			return exitError

@@ -22,8 +22,8 @@ import (
 	"syscall"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"github.com/raklaptudirm/krypt/pkg/dir"
 	"golang.org/x/term"
 )
 
@@ -57,7 +57,7 @@ func Input(format string, a ...interface{}) (input string, err error) {
 	return
 }
 
-func Register() (err error) {
+func Register(man auth.Manager) (err error) {
 	fmt.Println(heredoc.Doc(`
 		Initialize krypt with a password, so that your information
 		can be secured. Make sure the password is strong, as it will
@@ -95,12 +95,12 @@ password: // main password loop
 	salt := crypto.RandBytes(8)
 	hash := crypto.Checksum(pw1)
 
-	err = dir.WriteSalt(salt)
+	err = man.SetSalt(salt)
 	if err != nil {
 		return
 	}
 
-	err = dir.WriteChecksum(hash)
+	err = man.SetChecksum(hash)
 	if err != nil {
 		return
 	}
