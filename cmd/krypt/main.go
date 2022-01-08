@@ -43,6 +43,10 @@ func m(args []string) exitCode {
 	context := cmdutil.NewContext()
 	context.Version = cmdutil.NewVersion(build.Version, build.Date)
 
+	// managers from build
+	context.AuthManager = build.AuthManager
+	context.PassManager = build.PassManager
+
 	// register user if not already
 	if !context.Creds.Registered() {
 		err := term.Register(context.AuthManager)
