@@ -23,18 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type ListOptions struct {
-	Creds *auth.Creds
-	Ident string
-	Pass  pass.Manager
-}
-
 func NewCmd(c *cmdutil.Context) *cobra.Command {
-	opts := &ListOptions{
-		Creds: c.Creds,
-		Pass:  c.PassManager,
-	}
-
 	var cmd = &cobra.Command{
 		Use:   "list [name]",
 		Short: "un-encrypt and fetch a password from krypt using the filters",
@@ -44,20 +33,19 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			are provided, all the passwords are listed.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.Ident = args[0]
-			return list(opts)
+			return list(c.PassManager, c.Creds, args[0])
 		},
 	}
 
 	return cmd
 }
 
-func list(opts *ListOptions) error {
-	if !opts.Creds.LoggedIn() {
+func list(passMan pass.Manager, creds *auth.Creds, ident string) error {
+	if !creds.LoggedIn() {
 		return cmdutil.ErrNoLogin
 	}
 
-	pass, err := pass.GetS(opts.Pass, opts.Ident, opts.Creds.Key)
+	pass, err := pass.GetS(passMan, ident, creds.Key)
 	if err != nil {
 		return err
 	}

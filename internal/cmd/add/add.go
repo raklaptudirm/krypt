@@ -24,17 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type AddOptions struct {
-	Creds *auth.Creds
-	Pass  pass.Manager
-}
-
 func NewCmd(c *cmdutil.Context) *cobra.Command {
-	opts := &AddOptions{
-		Creds: c.Creds,
-		Pass:  c.PassManager,
-	}
-
 	var cmd = &cobra.Command{
 		Use:   "add",
 		Short: "add a new password to krypt, encrypted with your data",
@@ -45,15 +35,15 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return add(opts)
+			return add(c.PassManager, c.Creds)
 		},
 	}
 
 	return cmd
 }
 
-func add(opts *AddOptions) error {
-	if !opts.Creds.LoggedIn() {
+func add(passMan pass.Manager, creds *auth.Creds) error {
+	if !creds.LoggedIn() {
 		return cmdutil.ErrNoLogin
 	}
 
@@ -78,7 +68,7 @@ func add(opts *AddOptions) error {
 		Password: string(p),
 	}
 
-	err = password.Write(opts.Pass, opts.Creds.Key)
+	err = password.Write(passMan, creds.Key)
 	if err != nil {
 		return err
 	}

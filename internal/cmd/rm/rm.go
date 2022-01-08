@@ -23,18 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type RmOptions struct {
-	Checksum []byte
-	Creds    *auth.Creds
-	Pass     pass.Manager
-}
-
 func NewCmd(c *cmdutil.Context) *cobra.Command {
-	opts := &RmOptions{
-		Creds: c.Creds,
-		Pass:  c.PassManager,
-	}
-
 	var cmd = &cobra.Command{
 		Use:   "rm [name]",
 		Short: "remove a password from krypt",
@@ -45,25 +34,24 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			the master password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			pass, err := pass.GetS(opts.Pass, args[0], c.Creds.Key)
+			pass, err := pass.GetS(c.PassManager, args[0], c.Creds.Key)
 			if err != nil {
 				return err
 			}
 
-			opts.Checksum = pass.Checksum
-			return rm(opts)
+			return rm(c.PassManager, c.Creds, pass.Checksum)
 		},
 	}
 
 	return cmd
 }
 
-func rm(opts *RmOptions) error {
-	if !opts.Creds.LoggedIn() {
+func rm(passMan pass.Manager, creds *auth.Creds, checksum []byte) error {
+	if !creds.LoggedIn() {
 		return cmdutil.ErrNoLogin
 	}
 
-	err := opts.Pass.Delete(opts.Checksum)
+	err := passMan.Delete(checksum)
 	if err != nil {
 		return err
 	}
