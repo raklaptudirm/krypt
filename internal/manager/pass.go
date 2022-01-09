@@ -1,3 +1,16 @@
+// Copyright © 2021 Rak Laptudirm <raklaptudirm@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package manager
 
 import (
@@ -12,11 +25,13 @@ type pass struct {
 	Dir string // source directory
 }
 
+// Password gets the password data with the provided checksum.
 func (p *pass) Password(hash []byte) ([]byte, error) {
 	name := hex.EncodeToString(hash)
 	return os.ReadFile(filepath.Join(p.Dir, name))
 }
 
+// Passwords gets all the password data in the manager.
 func (p *pass) Passwords() ([][]byte, error) {
 	var passwords [][]byte
 
@@ -42,6 +57,7 @@ func (p *pass) Passwords() ([][]byte, error) {
 	return passwords, nil
 }
 
+// Write writes the password data into the manager.
 func (p *pass) Write(data []byte) error {
 	path := hex.EncodeToString(crypto.Checksum(data))
 	path = filepath.Join(p.Dir, path)
@@ -49,6 +65,7 @@ func (p *pass) Write(data []byte) error {
 	return os.WriteFile(path, data, 0644)
 }
 
+// Delete deletes the password data with the given checksum.
 func (p *pass) Delete(hash []byte) error {
 	path := hex.EncodeToString(hash)
 	path = filepath.Join(p.Dir, path)

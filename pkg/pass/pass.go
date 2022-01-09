@@ -22,19 +22,23 @@ import (
 	"github.com/raklaptudirm/krypt/pkg/crypto"
 )
 
+// ErrDecode represents some data which was not able to be decoded
+// by decode.
 type ErrDecode struct {
-	ct []byte
+	ct []byte // ciphertext
 }
 
+// Error represents ErrDecode in a string.
 func (e ErrDecode) Error() string {
-	return fmt.Sprintf("Error decoding %v", e.ct)
+	return fmt.Sprintf("Error decoding %x", e.ct)
 }
 
+// Password represents a krypt password.
 type Password struct {
-	Name     string
-	UserID   string
-	Password string
-	Checksum []byte
+	Name     string // password name
+	UserID   string // password username
+	Password string // password
+	Checksum []byte // checksum of encrypted password
 }
 
 func (p *Password) encode(key []byte) (b []byte, err error) {
@@ -68,22 +72,27 @@ func decode(b []byte, key []byte) (pass *Password, err error) {
 	return
 }
 
+// String represents Password as a string.
 func (p *Password) String() string {
 	hidden := strings.Repeat("*", len(p.Password))
 	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v\n", p.Name, p.UserID, hidden)
 }
 
+// Write encrypts the password with the provided key and writes it to the provided manager.
 func (p *Password) Write(man Manager, key []byte) error {
 	data, err := p.encode(key)
 	if err != nil {
 		return err
 	}
 
-	err = man.Write(data)
-	return err
+	return man.Write(data)
 }
 
+// GetS fetches a single password from the provided password manager according to
+// the provided identifier.
 func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
+	ident = strings.ToLower(ident)
+
 	pbs, err := man.Passwords()
 	if err != nil {
 		return
@@ -92,13 +101,15 @@ func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
 	for _, pb := range pbs {
 		hash := hex.EncodeToString((crypto.Checksum(pb)))
 
+		// check if string matches checksum
 		if strings.HasPrefix(hash, ident) {
 			pass, err = decode(pb, key)
 			return
 		}
 
 		pass, err = decode(pb, key)
-		if err == nil && strings.Contains(pass.Name, ident) {
+		// check if string matches password name
+		if err == nil && strings.Contains(strings.ToLower(pass.Name), ident) {
 			return
 		}
 	}

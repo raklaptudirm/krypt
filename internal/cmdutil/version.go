@@ -15,19 +15,24 @@ package cmdutil
 
 import "fmt"
 
+// Version represents the version of a krypt executable.
 type Version struct {
-	version   string
-	buildDate string
+	version   string // krypt version
+	buildDate string // executable build date
 }
 
+// String converts a Version to a version string.
 func (v *Version) String() string {
 	if v.buildDate == "" {
 		return v.version
 	}
 
+	// krypt version-date
 	return fmt.Sprintf("krypt %v-%v\n", v.version, v.buildDate)
 }
 
+// NewVersion returns a *Version from the provided version and build
+// date.
 func NewVersion(v, d string) *Version {
 	return &Version{
 		version:   v,

@@ -19,24 +19,34 @@ import (
 	"github.com/raklaptudirm/krypt/pkg/crypto"
 )
 
+// Creds stored authentication information that can be used to validate
+// the master password and decrypt stored passwords.
 type Creds struct {
 	Key  []byte
 	Hash []byte
 }
 
+// Validate checks if the provided byte array matches the master password
+// checksum.
 func (a *Creds) Validate(b []byte) bool {
 	hash := crypto.Checksum(b)
 	return reflect.DeepEqual(hash, a.Hash)
 }
 
+// Registered checks if the user is registered from the credentials.
 func (a *Creds) Registered() bool {
+	// password hash is non zero
 	return len(a.Hash) > 0
 }
 
+// LoggedIn checks if the user is logged in from the credentials.
 func (a *Creds) LoggedIn() bool {
+	// key value is non zero
 	return len(a.Key) > 0
 }
 
+// Get returns a pointer to a Creds instance with the credential information
+// from the provided auth manager.
 func Get(man Manager) *Creds {
 	auth := &Creds{}
 

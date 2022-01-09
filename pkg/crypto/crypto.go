@@ -89,6 +89,8 @@ func DeriveKey(pw []byte, salt []byte) (key []byte) {
 	return
 }
 
+// RandBytes generates an array of cryptographically secure random bytes
+// with the provided length.
 func RandBytes(len int) []byte {
 	// generate len random bytes
 	b := make([]byte, len)
