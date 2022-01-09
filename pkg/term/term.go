@@ -27,18 +27,23 @@ import (
 	"golang.org/x/term"
 )
 
+// Error acts as fmt.Print in stderr.
 func Error(a ...interface{}) (int, error) {
 	return fmt.Fprint(os.Stderr, a...)
 }
 
+// Errorf acts as fmt.Printf in stderr.
 func Errorf(format string, a ...interface{}) (int, error) {
 	return fmt.Fprintf(os.Stderr, format, a...)
 }
 
+// Errorln acts as fmt.Println in stderr.
 func Errorln(a ...interface{}) (int, error) {
 	return fmt.Fprintln(os.Stderr, a...)
 }
 
+// Pass prints the provided args as fmt.Printf and asks for a password,
+// and the input is hidden.
 func Pass(format string, a ...interface{}) (pw []byte, err error) {
 	fmt.Printf(format, a...)
 	pw, err = term.ReadPassword(int(syscall.Stdin))
@@ -46,6 +51,7 @@ func Pass(format string, a ...interface{}) (pw []byte, err error) {
 	return
 }
 
+// Input prints the provided args as fmt.Printf and asks for an input.
 func Input(format string, a ...interface{}) (input string, err error) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf(format, a...)
@@ -57,6 +63,8 @@ func Input(format string, a ...interface{}) (input string, err error) {
 	return
 }
 
+// Register registers the user and stores the credentials in the provided
+// authentication manager.
 func Register(man auth.Manager) (err error) {
 	fmt.Println(heredoc.Doc(`
 		Initialize krypt with a password, so that your information

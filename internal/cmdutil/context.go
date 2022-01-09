@@ -31,7 +31,8 @@ type Context struct {
 	AuthManager auth.Manager // the authentication manager
 }
 
-// NewContext
+// NewContext fetches all the context information and returns a
+// pointer to a Context instance.
 func NewContext() *Context {
 	exec, err := os.Executable()
 	if err != nil {
