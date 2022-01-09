@@ -19,19 +19,10 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
-	"github.com/raklaptudirm/krypt/pkg/dir"
 	"github.com/spf13/cobra"
 )
 
-type LogoutOptions struct {
-	Creds *auth.Creds
-}
-
 func NewCmd(c *cmdutil.Context) *cobra.Command {
-	opts := &LogoutOptions{
-		Creds: c.Creds,
-	}
-
 	var cmd = &cobra.Command{
 		Use:   "logout",
 		Short: "log off krypt by removing the encryption key file",
@@ -42,17 +33,17 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			the master password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logout(opts)
+			return logout(c.AuthManager, c.Creds)
 		},
 	}
 
 	return cmd
 }
 
-func logout(opts *LogoutOptions) error {
-	loggedIn := len(opts.Creds.Key) != 0
+func logout(authMan auth.Manager, creds *auth.Creds) error {
+	loggedIn := len(creds.Key) != 0
 	if loggedIn {
-		dir.WriteKey([]byte{})
+		authMan.SetKey([]byte{})
 		fmt.Println("Logged out.")
 		return nil
 	}

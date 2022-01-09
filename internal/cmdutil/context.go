@@ -17,12 +17,15 @@ import (
 	"os"
 
 	"github.com/raklaptudirm/krypt/internal/auth"
+	"github.com/raklaptudirm/krypt/pkg/pass"
 )
 
 type Context struct {
-	ExeFile string
-	Creds   *auth.Creds
-	Version *Version
+	ExeFile     string
+	Creds       *auth.Creds
+	Version     *Version
+	PassManager pass.Manager
+	AuthManager auth.Manager
 }
 
 func NewContext() *Context {

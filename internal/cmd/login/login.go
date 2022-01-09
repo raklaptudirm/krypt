@@ -22,19 +22,10 @@ import (
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"github.com/raklaptudirm/krypt/pkg/dir"
 	"github.com/raklaptudirm/krypt/pkg/term"
 )
 
-type LoginOptions struct {
-	Creds *auth.Creds
-}
-
 func NewCmd(c *cmdutil.Context) *cobra.Command {
-	opts := &LoginOptions{
-		Creds: c.Creds,
-	}
-
 	var cmd = &cobra.Command{
 		Use:   "login",
 		Short: "login to krypt with your registered master password",
@@ -48,15 +39,15 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			access to it.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return login(opts)
+			return login(c.AuthManager, c.Creds)
 		},
 	}
 
 	return cmd
 }
 
-func login(opts *LoginOptions) error {
-	loggedIn := len(opts.Creds.Key) != 0
+func login(authMan auth.Manager, creds *auth.Creds) error {
+	loggedIn := len(creds.Key) != 0
 	if loggedIn {
 		return fmt.Errorf("already logged in")
 	}
@@ -66,19 +57,19 @@ func login(opts *LoginOptions) error {
 		return err
 	}
 
-	if !opts.Creds.Validate(pw) {
+	if !creds.Validate(pw) {
 		return fmt.Errorf("wrong password")
 	}
 
 	// use previously generated random salt for key generation
-	salt, err := dir.Salt()
+	salt, err := authMan.Salt()
 	if err != nil {
 		return err
 	}
 
 	key := crypto.DeriveKey(pw, salt)
 
-	err = dir.WriteKey(key)
+	err = authMan.SetKey(key)
 	if err == nil {
 		fmt.Println("Logged in.")
 	}

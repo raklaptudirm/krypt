@@ -24,17 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type EditOptions struct {
-	Creds    *auth.Creds
-	Password *pass.Password
-	PassHash string
-}
-
 func NewCmd(c *cmdutil.Context) *cobra.Command {
-	opts := &EditOptions{
-		Creds: c.Creds,
-	}
-
 	var cmd = &cobra.Command{
 		Use:   "edit [name]",
 		Short: "edit a stored password in krypt",
@@ -44,22 +34,20 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			previous one, and store the new one.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, pass, err := pass.GetS(args[0], c.Creds.Key)
+			p, err := pass.GetS(c.PassManager, args[0], c.Creds.Key)
 			if err != nil {
 				return err
 			}
 
-			opts.Password = pass
-			opts.PassHash = name
-			return edit(opts)
+			return edit(c.PassManager, c.Creds, p)
 		},
 	}
 
 	return cmd
 }
 
-func edit(opts *EditOptions) error {
-	if !opts.Creds.LoggedIn() {
+func edit(passMan pass.Manager, creds *auth.Creds, p *pass.Password) error {
+	if !creds.LoggedIn() {
 		return cmdutil.ErrNoLogin
 	}
 
@@ -68,7 +56,7 @@ func edit(opts *EditOptions) error {
 		return err
 	}
 	if name == "" {
-		name = opts.Password.Name
+		name = p.Name
 	}
 
 	user, err := term.Input("username: ")
@@ -76,29 +64,29 @@ func edit(opts *EditOptions) error {
 		return err
 	}
 	if user == "" {
-		user = opts.Password.UserID
+		user = p.UserID
 	}
 
-	p, err := term.Pass("password: ")
+	np, err := term.Pass("password: ")
 	if err != nil {
 		return err
 	}
-	if len(p) == 0 {
-		p = []byte(opts.Password.Password)
+	if len(np) == 0 {
+		np = []byte(p.Password)
 	}
 
 	password := pass.Password{
 		Name:     name,
 		UserID:   user,
-		Password: string(p),
+		Password: string(np),
 	}
 
-	err = pass.Remove(opts.PassHash)
+	err = passMan.Delete(p.Checksum)
 	if err != nil {
 		return err
 	}
 
-	err = password.Write(opts.Creds.Key)
+	err = password.Write(passMan, creds.Key)
 	if err != nil {
 		return err
 	}
