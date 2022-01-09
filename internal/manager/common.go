@@ -11,6 +11,8 @@ var Auth *auth
 
 func init() {
 	dir := dataDir()
+	os.Mkdir(dir, 0755)
+
 	Pass = &pass{Dir: dir}
 	Auth = &auth{Dir: dir}
 }
