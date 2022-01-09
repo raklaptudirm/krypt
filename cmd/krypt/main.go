@@ -18,6 +18,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/build"
 	"github.com/raklaptudirm/krypt/internal/cmd/root"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
@@ -46,6 +47,8 @@ func m(args []string) exitCode {
 	// managers from build
 	context.AuthManager = build.AuthManager
 	context.PassManager = build.PassManager
+
+	context.Creds = auth.Get(context.AuthManager)
 
 	// register user if not already
 	if !context.Creds.Registered() {
