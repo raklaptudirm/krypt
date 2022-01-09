@@ -1,7 +1,5 @@
 package manager
 
-var Auth = &auth{}
-
 type auth struct {
 	Dir string // source directory
 }

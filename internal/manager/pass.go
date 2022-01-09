@@ -1,7 +1,5 @@
 package manager
 
-var Pass = &pass{}
-
 type pass struct {
 	Dir string // source directory
 }
