@@ -17,17 +17,21 @@ import (
 	"os"
 
 	"github.com/raklaptudirm/krypt/internal/auth"
+	"github.com/raklaptudirm/krypt/internal/build"
 	"github.com/raklaptudirm/krypt/pkg/pass"
 )
 
+// Context represents the context in which the krypt commands will
+// get executed.
 type Context struct {
-	ExeFile     string
-	Creds       *auth.Creds
-	Version     *Version
-	PassManager pass.Manager
-	AuthManager auth.Manager
+	ExeFile     string       // the krypt executable
+	Creds       *auth.Creds  // the user credentials
+	Version     *Version     // the krypt version
+	PassManager pass.Manager // the password manager
+	AuthManager auth.Manager // the authentication manager
 }
 
+// NewContext
 func NewContext() *Context {
 	exec, err := os.Executable()
 	if err != nil {
@@ -35,7 +39,10 @@ func NewContext() *Context {
 	}
 
 	return &Context{
-		ExeFile: exec,
-		Creds:   &auth.Creds{},
+		ExeFile:     exec,
+		Creds:       auth.Get(build.AuthManager),
+		Version:     NewVersion(build.Version, build.Date),
+		PassManager: build.PassManager,
+		AuthManager: build.AuthManager,
 	}
 }
