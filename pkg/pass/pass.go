@@ -118,6 +118,8 @@ func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
 	return
 }
 
+// Get fetches a list of password from the provided password manager whose names match
+// the provided regular expression.
 func Get(man Manager, ident string, key []byte) (pass []Password, err error) {
 	regex, err := regexp.Compile(ident)
 	if err != nil {
@@ -131,7 +133,8 @@ func Get(man Manager, ident string, key []byte) (pass []Password, err error) {
 
 	for _, pb := range pbs {
 		p, err := decode(pb, key)
-		// check if string matches password name
+
+		// check if regex matches password name
 		if err == nil && regex.Match([]byte(p.Name)) {
 			pass = append(pass, *p)
 		}

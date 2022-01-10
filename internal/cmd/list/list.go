@@ -33,7 +33,7 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			are provided, all the passwords are listed.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			regex := ""
+			regex := "" // empty string matches all
 			if len(args) > 0 {
 				regex = args[0]
 			}
@@ -57,6 +57,8 @@ func list(passMan pass.Manager, creds *auth.Creds, ident string) error {
 	length := len(passwords) - 1
 	for i, pass := range passwords {
 		fmt.Println(pass.String())
+
+		// print a newline for all but last
 		if i != length {
 			fmt.Println()
 		}
