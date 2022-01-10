@@ -45,11 +45,13 @@ func list(passMan pass.Manager, creds *auth.Creds, ident string) error {
 		return cmdutil.ErrNoLogin
 	}
 
-	pass, err := pass.GetS(passMan, ident, creds.Key)
+	passwords, err := pass.Get(passMan, ident, creds.Key)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(pass.String())
+	for _, pass := range passwords {
+		fmt.Println(pass.String())
+	}
 	return nil
 }

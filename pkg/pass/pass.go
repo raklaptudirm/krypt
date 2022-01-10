@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/raklaptudirm/krypt/pkg/crypto"
@@ -103,14 +104,36 @@ func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
 
 		// check if string matches checksum
 		if strings.HasPrefix(hash, ident) {
-			pass, err = decode(pb, key)
-			return
+			return decode(pb, key)
 		}
 
 		pass, err = decode(pb, key)
 		// check if string matches password name
 		if err == nil && strings.Contains(strings.ToLower(pass.Name), ident) {
 			return
+		}
+	}
+
+	err = fmt.Errorf("no password matched %v", ident)
+	return
+}
+
+func Get(man Manager, ident string, key []byte) (pass []Password, err error) {
+	regex, err := regexp.Compile(ident)
+	if err != nil {
+		return
+	}
+
+	pbs, err := man.Passwords()
+	if err != nil {
+		return
+	}
+
+	for _, pb := range pbs {
+		p, err := decode(pb, key)
+		// check if string matches password name
+		if err == nil && regex.Match([]byte(p.Name)) {
+			pass = append(pass, *p)
 		}
 	}
 
