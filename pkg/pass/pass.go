@@ -76,7 +76,7 @@ func decode(b []byte, key []byte) (pass *Password, err error) {
 // String represents Password as a string.
 func (p *Password) String() string {
 	hidden := strings.Repeat("*", len(p.Password))
-	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v\n", p.Name, p.UserID, hidden)
+	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v", p.Name, p.UserID, hidden)
 }
 
 // Write encrypts the password with the provided key and writes it to the provided manager.
@@ -137,6 +137,8 @@ func Get(man Manager, ident string, key []byte) (pass []Password, err error) {
 		}
 	}
 
-	err = fmt.Errorf("no password matched %v", ident)
+	if len(pass) == 0 {
+		err = fmt.Errorf("no password matched %v", ident)
+	}
 	return
 }

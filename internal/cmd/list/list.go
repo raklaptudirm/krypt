@@ -27,13 +27,17 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "list [name]",
 		Short: "un-encrypt and fetch a password from krypt using the filters",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(0, 1),
 		Long: heredoc.Doc(`
 			List all the passwords which match the provided filters. If no filters
 			are provided, all the passwords are listed.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return list(c.PassManager, c.Creds, args[0])
+			regex := ""
+			if len(args) > 0 {
+				regex = args[0]
+			}
+			return list(c.PassManager, c.Creds, regex)
 		},
 	}
 
@@ -50,8 +54,13 @@ func list(passMan pass.Manager, creds *auth.Creds, ident string) error {
 		return err
 	}
 
-	for _, pass := range passwords {
+	length := len(passwords) - 1
+	for i, pass := range passwords {
 		fmt.Println(pass.String())
+		if i != length {
+			fmt.Println()
+		}
 	}
+
 	return nil
 }
