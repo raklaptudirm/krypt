@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/raklaptudirm/krypt/pkg/crypto"
@@ -75,7 +76,7 @@ func decode(b []byte, key []byte) (pass *Password, err error) {
 // String represents Password as a string.
 func (p *Password) String() string {
 	hidden := strings.Repeat("*", len(p.Password))
-	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v\n", p.Name, p.UserID, hidden)
+	return fmt.Sprintf("Name: %v\nUsername: %v\nPassword: %v", p.Name, p.UserID, hidden)
 }
 
 // Write encrypts the password with the provided key and writes it to the provided manager.
@@ -103,8 +104,7 @@ func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
 
 		// check if string matches checksum
 		if strings.HasPrefix(hash, ident) {
-			pass, err = decode(pb, key)
-			return
+			return decode(pb, key)
 		}
 
 		pass, err = decode(pb, key)
@@ -115,5 +115,33 @@ func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
 	}
 
 	err = fmt.Errorf("no password matched %v", ident)
+	return
+}
+
+// Get fetches a list of password from the provided password manager whose names match
+// the provided regular expression.
+func Get(man Manager, ident string, key []byte) (pass []Password, err error) {
+	regex, err := regexp.Compile(ident)
+	if err != nil {
+		return
+	}
+
+	pbs, err := man.Passwords()
+	if err != nil {
+		return
+	}
+
+	for _, pb := range pbs {
+		p, err := decode(pb, key)
+
+		// check if regex matches password name
+		if err == nil && regex.Match([]byte(p.Name)) {
+			pass = append(pass, *p)
+		}
+	}
+
+	if len(pass) == 0 {
+		err = fmt.Errorf("no password matched %v", ident)
+	}
 	return
 }
