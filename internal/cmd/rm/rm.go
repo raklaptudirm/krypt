@@ -34,12 +34,12 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			the master password.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			pass, err := pass.GetS(c.PassManager, args[0], c.Creds.Key)
+			ps, err := pass.Get(c.PassManager, args[0], c.Creds.Key)
 			if err != nil {
 				return err
 			}
 
-			return rm(c.PassManager, c.Creds, pass.Checksum)
+			return rm(c.PassManager, c.Creds, ps[0].Checksum)
 		},
 	}
 

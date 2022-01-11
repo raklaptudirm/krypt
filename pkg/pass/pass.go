@@ -15,7 +15,6 @@ package pass
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"regexp"
 	"strings"
@@ -87,35 +86,6 @@ func (p *Password) Write(man Manager, key []byte) error {
 	}
 
 	return man.Write(data)
-}
-
-// GetS fetches a single password from the provided password manager according to
-// the provided identifier.
-func GetS(man Manager, ident string, key []byte) (pass *Password, err error) {
-	ident = strings.ToLower(ident)
-
-	pbs, err := man.Passwords()
-	if err != nil {
-		return
-	}
-
-	for _, pb := range pbs {
-		hash := hex.EncodeToString((crypto.Checksum(pb)))
-
-		// check if string matches checksum
-		if strings.HasPrefix(hash, ident) {
-			return decode(pb, key)
-		}
-
-		pass, err = decode(pb, key)
-		// check if string matches password name
-		if err == nil && strings.Contains(strings.ToLower(pass.Name), ident) {
-			return
-		}
-	}
-
-	err = fmt.Errorf("no password matched %v", ident)
-	return
 }
 
 // Get fetches a list of password from the provided password manager whose names match

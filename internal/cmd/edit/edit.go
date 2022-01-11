@@ -34,12 +34,12 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			previous one, and store the new one.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			p, err := pass.GetS(c.PassManager, args[0], c.Creds.Key)
+			p, err := pass.Get(c.PassManager, args[0], c.Creds.Key)
 			if err != nil {
 				return err
 			}
 
-			return edit(c.PassManager, c.Creds, p)
+			return edit(c.PassManager, c.Creds, &p[0])
 		},
 	}
 
