@@ -14,11 +14,9 @@
 package term
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
 	"syscall"
 
 	"github.com/MakeNowJust/heredoc"
@@ -48,18 +46,6 @@ func Pass(format string, a ...interface{}) (pw []byte, err error) {
 	fmt.Printf(format, a...)
 	pw, err = term.ReadPassword(int(syscall.Stdin))
 	fmt.Println()
-	return
-}
-
-// Input prints the provided args as fmt.Printf and asks for an input.
-func Input(format string, a ...interface{}) (input string, err error) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf(format, a...)
-	input, err = reader.ReadString('\n')
-	if err == nil {
-		input = strings.TrimSpace(input)
-	}
-
 	return
 }
 

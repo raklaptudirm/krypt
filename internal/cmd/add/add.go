@@ -16,11 +16,11 @@ package add
 import (
 	"fmt"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
@@ -47,25 +47,25 @@ func add(passMan pass.Manager, creds *auth.Creds) error {
 		return cmdutil.ErrNoLogin
 	}
 
-	name, err := term.Input("name: ")
-	if err != nil {
-		return err
+	var password pass.Password
+	questions := []*survey.Question{
+		{
+			Name:   "Name",
+			Prompt: &survey.Input{Message: "Name"},
+		},
+		{
+			Name:   "UserID",
+			Prompt: &survey.Input{Message: "Username"},
+		},
+		{
+			Name:   "Password",
+			Prompt: &survey.Password{Message: "Password"},
+		},
 	}
 
-	user, err := term.Input("username: ")
+	err := survey.Ask(questions, &password)
 	if err != nil {
 		return err
-	}
-
-	p, err := term.Pass("password: ")
-	if err != nil {
-		return err
-	}
-
-	password := pass.Password{
-		Name:     name,
-		UserID:   user,
-		Password: string(p),
 	}
 
 	err = password.Write(passMan, creds.Key)
