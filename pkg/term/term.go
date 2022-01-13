@@ -16,13 +16,11 @@ package term
 import (
 	"fmt"
 	"os"
-	"reflect"
-	"syscall"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"golang.org/x/term"
 )
 
 // Error acts as fmt.Print in stderr.
@@ -40,15 +38,6 @@ func Errorln(a ...interface{}) (int, error) {
 	return fmt.Fprintln(os.Stderr, a...)
 }
 
-// Pass prints the provided args as fmt.Printf and asks for a password,
-// and the input is hidden.
-func Pass(format string, a ...interface{}) (pw []byte, err error) {
-	fmt.Printf(format, a...)
-	pw, err = term.ReadPassword(int(syscall.Stdin))
-	fmt.Println()
-	return
-}
-
 // Register registers the user and stores the credentials in the provided
 // authentication manager.
 func Register(man auth.Manager) (err error) {
@@ -59,35 +48,35 @@ func Register(man auth.Manager) (err error) {
 	`))
 
 password: // main password loop
-	pw1, err := Pass("Enter new password: ")
+	var pw1, pw2 string
+
+	password := &survey.Password{Message: "Password"}
+	err = survey.AskOne(password, &pw1)
 	if err != nil {
 		return
 	}
 
-	pw2, err := Pass("Re-enter your password: ")
+confirm: // confirmation loop
+	confirm := &survey.Password{Message: "Confirm Password"}
+	err = survey.AskOne(confirm, &pw2)
 	if err != nil {
 		return
 	}
 
 	// repeat until the two passwords are equal
-	for !reflect.DeepEqual(pw1, pw2) {
-		pw2, err = Pass(heredoc.Doc(`
-			Your passwords don't match.
-			Re-enter your password, or keep it blank to start over: `))
-		if err != nil {
-			return
-		}
-
+	for pw1 != pw2 {
 		// if user enters nothing, restart password loop
 		if len(pw2) == 0 {
 			goto password
 		}
+
+		goto confirm
 	}
 
 	// passwords are equal
 
 	salt := crypto.RandBytes(8)
-	hash := crypto.Checksum(pw1)
+	hash := crypto.Checksum([]byte(pw1))
 
 	err = man.SetSalt(salt)
 	if err != nil {
@@ -99,6 +88,6 @@ password: // main password loop
 		return
 	}
 
-	fmt.Println("Your password has been registered.")
+	fmt.Print("Your password has been registered.\n\n")
 	return
 }
