@@ -16,11 +16,11 @@ package edit
 import (
 	"fmt"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/pass"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
 )
 
@@ -51,34 +51,33 @@ func edit(passMan pass.Manager, creds *auth.Creds, p *pass.Password) error {
 		return cmdutil.ErrNoLogin
 	}
 
-	name, err := term.Input("name: ")
-	if err != nil {
-		return err
-	}
-	if name == "" {
-		name = p.Name
+	var password pass.Password
+	questions := []*survey.Question{
+		{
+			Name: "Name",
+			Prompt: &survey.Input{
+				Message: "Name",
+				Default: p.Name,
+			},
+		},
+		{
+			Name: "UserID",
+			Prompt: &survey.Input{
+				Message: "Username",
+				Default: p.UserID,
+			},
+		},
+		{
+			Name: "Password",
+			Prompt: &survey.Password{
+				Message: "Password",
+			},
+		},
 	}
 
-	user, err := term.Input("username: ")
+	err := survey.Ask(questions, &password)
 	if err != nil {
 		return err
-	}
-	if user == "" {
-		user = p.UserID
-	}
-
-	np, err := term.Pass("password: ")
-	if err != nil {
-		return err
-	}
-	if len(np) == 0 {
-		np = []byte(p.Password)
-	}
-
-	password := pass.Password{
-		Name:     name,
-		UserID:   user,
-		Password: string(np),
 	}
 
 	err = passMan.Delete(p.Checksum)

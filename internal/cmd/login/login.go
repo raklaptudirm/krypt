@@ -16,13 +16,13 @@ package login
 import (
 	"fmt"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 
 	"github.com/raklaptudirm/krypt/internal/auth"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"github.com/raklaptudirm/krypt/pkg/term"
 )
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
@@ -52,11 +52,15 @@ func login(authMan auth.Manager, creds *auth.Creds) error {
 		return fmt.Errorf("already logged in")
 	}
 
-	pw, err := term.Pass("Enter password: ")
+	var password string
+	question := survey.Password{Message: "Password"}
+
+	err := survey.AskOne(&question, &password)
 	if err != nil {
 		return err
 	}
 
+	pw := []byte(password)
 	if !creds.Validate(pw) {
 		return fmt.Errorf("wrong password")
 	}
