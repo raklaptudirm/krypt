@@ -25,7 +25,7 @@ import (
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "rm [name]",
+		Use:   "rm regexp",
 		Short: "remove a password from krypt",
 		Args:  cobra.ExactArgs(1),
 		Long: heredoc.Doc(`

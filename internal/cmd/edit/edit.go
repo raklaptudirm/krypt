@@ -26,7 +26,7 @@ import (
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "edit [name]",
+		Use:   "edit regexp",
 		Short: "edit a stored password in krypt",
 		Args:  cobra.ExactArgs(1),
 		Long: heredoc.Doc(`
