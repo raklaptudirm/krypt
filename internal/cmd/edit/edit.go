@@ -27,7 +27,7 @@ import (
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "edit regexp",
-		Short: "edit a stored password in krypt",
+		Short: "edit the password which matches the provided regexp",
 		Args:  cobra.ExactArgs(1),
 		Long: heredoc.Doc(`
 			Edit is used to edit a password in krypt, delete the

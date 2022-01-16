@@ -26,7 +26,7 @@ import (
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "list [regexp]",
-		Short: "un-encrypt and fetch a password from krypt using the filters",
+		Short: "list the passwords which match the provided regexp",
 		Args:  cobra.RangeArgs(0, 1),
 		Long: heredoc.Doc(`
 			List all the passwords which match the provided filters. If no filters

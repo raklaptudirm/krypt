@@ -23,7 +23,7 @@ import (
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "version",
-		Short: "show the krypt software version",
+		Short: "version prints the current version of print",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Print(c.Version.String())

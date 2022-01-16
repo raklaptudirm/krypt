@@ -27,7 +27,7 @@ import (
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "add",
-		Short: "add a new password to krypt, encrypted with your data",
+		Short: "add a new password to krypt, encrypted with your key",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
 			Add a new password with a name, username and password to

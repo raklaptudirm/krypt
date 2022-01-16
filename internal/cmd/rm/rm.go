@@ -26,7 +26,7 @@ import (
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "rm regexp",
-		Short: "remove a password from krypt",
+		Short: "remove a password which matches the provided regexp",
 		Args:  cobra.ExactArgs(1),
 		Long: heredoc.Doc(`
 			Logout clears the file which stores your database key,
