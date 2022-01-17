@@ -25,7 +25,7 @@ import (
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "logout",
-		Short: "logout to block all password access and activity",
+		Short: "logout logs the user out of krypt and blocks access",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
 			Logout clears the file which stores your database key,
