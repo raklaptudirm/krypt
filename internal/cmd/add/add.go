@@ -30,9 +30,12 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 		Short: "add a new password to krypt encrypted with your key",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
-			Add a new password with a name, username and password to
-			krypt. You will later be able to edit and manipulate this
-			password.
+			Add a new password to krypt, with the provided Name, UserID, and Password.
+			The password will be encrypted and stored, and can only be accessed while
+			logged in.
+
+			This password can be fetched, edited, or removed using the other krypt
+			commands.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return add(c.PassManager, c.Creds)

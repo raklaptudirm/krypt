@@ -28,9 +28,10 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 		Short: "logout logs the user out of krypt and blocks access",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
-			Logout clears the file which stores your database key,
-			so that accessing the passwords requires logging in with
-			the master password.
+			Logout logs you out from krypt, preventing access to the database without
+			the master password. Use this once you are done using krypt.
+
+			After logging out, you need to log back in to access the database.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return logout(c.AuthManager, c.Creds)

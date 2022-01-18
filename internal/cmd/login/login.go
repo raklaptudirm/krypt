@@ -31,12 +31,11 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 		Short: "login to krypt with your registered master password",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
-			Login stores your provided password in a file so that
-			you do not need to enter your	password multiple times.
-	
-			Remember to logout once you are finished,	otherwise the
-			file with your key will	remain and other people may get
-			access to it.
+			Login stores your krypt key so that is does not need to be entered every
+			time a krypt command is used.
+
+			Remember to logout from krypt when you are finished, as your passwords can
+			be accessed as long as you are logged in.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return login(c.AuthManager, c.Creds)
