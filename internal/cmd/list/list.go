@@ -25,12 +25,14 @@ import (
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "list [name]",
-		Short: "un-encrypt and fetch a password from krypt using the filters",
+		Use:   "list [regexp]",
+		Short: "list the passwords which match the provided regexp",
 		Args:  cobra.RangeArgs(0, 1),
 		Long: heredoc.Doc(`
-			List all the passwords which match the provided filters. If no filters
-			are provided, all the passwords are listed.
+			List all the passwords which match the provided regular expression. If no
+			regular expression is provided, all the passwords are listed.
+
+			The printed passwords are censored by default.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			regex := "" // empty string matches all

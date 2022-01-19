@@ -27,7 +27,7 @@ import (
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:  "krypt command",
+		Use:  "krypt [command]",
 		Args: cobra.NoArgs,
 
 		SilenceErrors: true,

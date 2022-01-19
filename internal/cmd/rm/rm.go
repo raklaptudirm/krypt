@@ -25,13 +25,14 @@ import (
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "rm [name]",
-		Short: "remove a password from krypt",
+		Use:   "rm regexp",
+		Short: "remove a password which matches the provided regexp",
 		Args:  cobra.ExactArgs(1),
 		Long: heredoc.Doc(`
-			Logout clears the file which stores your database key,
-			so that accessing the passwords requires logging in with
-			the master password.
+			Remove deletes the password matching the regular expression from krypt.
+
+			The password to delete is the first password from the list of password
+			names that match the provided regular expression.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ps, err := pass.Get(c.PassManager, args[0], c.Creds.Key)

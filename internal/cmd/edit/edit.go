@@ -26,12 +26,15 @@ import (
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "edit [name]",
-		Short: "edit a stored password in krypt",
+		Use:   "edit regexp",
+		Short: "edit the password which matches the provided regexp",
 		Args:  cobra.ExactArgs(1),
 		Long: heredoc.Doc(`
-			Edit is used to edit a password in krypt, delete the
-			previous one, and store the new one.
+			Edit is used to edit a password stored in krypt. All of the details can
+			be edited, or kept the same by providing an empty input.
+
+			The password to edit is the first password from the list of password
+			names that match the provided regular expression.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := pass.Get(c.PassManager, args[0], c.Creds.Key)
