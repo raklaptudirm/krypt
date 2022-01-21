@@ -16,6 +16,7 @@ package root
 import (
 	"github.com/raklaptudirm/krypt/internal/cmd/add"
 	"github.com/raklaptudirm/krypt/internal/cmd/edit"
+	"github.com/raklaptudirm/krypt/internal/cmd/help"
 	"github.com/raklaptudirm/krypt/internal/cmd/list"
 	"github.com/raklaptudirm/krypt/internal/cmd/login"
 	"github.com/raklaptudirm/krypt/internal/cmd/logout"
@@ -41,6 +42,9 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 	versionStr := c.Version.String()
 	cmd.SetVersionTemplate(versionStr)
 	cmd.Version = versionStr
+
+	// set custom help command
+	cmd.SetHelpCommand(help.NewCmd())
 
 	// child commands
 	cmd.AddCommand(rm.NewCmd(c))
