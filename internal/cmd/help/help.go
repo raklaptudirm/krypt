@@ -32,9 +32,14 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root := cmd.Root()
 
-			target, _, err := root.Traverse(args)
+			target, extra, err := root.Traverse(args)
 			if err != nil {
 				return err
+			}
+
+			if len(extra) > 0 {
+				term.Errorf("unknown command \"%v\" for \"%v\"\n", extra[0], target.Name())
+				return nil
 			}
 
 			return help(target)
