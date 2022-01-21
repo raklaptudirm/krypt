@@ -38,7 +38,7 @@ func NewCmd() *cobra.Command {
 			}
 
 			if len(extra) > 0 {
-				term.Errorf("unknown command \"%v\" for \"%v\"\n", extra[0], target.Name())
+				term.Errorf("unknown command \"%v\" for \"%v\"\n", extra[0], getFullName(target))
 				return nil
 			}
 
@@ -59,4 +59,14 @@ func help(cmd *cobra.Command) error {
 	cmd.Usage()
 	term.Errorln()
 	return nil
+}
+
+func getFullName(cmd *cobra.Command) string {
+	name := cmd.Name()
+
+	if cmd.HasParent() {
+		name = getFullName(cmd.Parent()) + " " + name
+	}
+
+	return name
 }
