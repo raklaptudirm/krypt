@@ -45,15 +45,10 @@ func NewCmd() *cobra.Command {
 }
 
 func help(cmd *cobra.Command) error {
-	var hs string
 	if cmd.Long != "" {
 		term.Errorln(cmd.Long)
 	} else {
 		term.Errorln(cmd.Short)
-	}
-
-	if hs != "" {
-		term.Errorln()
 	}
 
 	cmd.Usage()
