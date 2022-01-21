@@ -43,8 +43,10 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 	cmd.SetVersionTemplate(versionStr)
 	cmd.Version = versionStr
 
-	// set custom help command
-	cmd.SetHelpCommand(help.NewCmd())
+	// set custom help
+	hc := help.NewCmd()
+	cmd.SetHelpCommand(hc)
+	cmd.SetHelpFunc(hc.Run)
 
 	// child commands
 	cmd.AddCommand(rm.NewCmd(c))

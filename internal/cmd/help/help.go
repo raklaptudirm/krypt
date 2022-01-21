@@ -29,27 +29,23 @@ func NewCmd() *cobra.Command {
 
 			It can also be used as the --help or -h flag.
 		`),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			root := cmd.Root()
+			target, extra, _ := root.Traverse(args)
 
-			target, extra, err := root.Traverse(args)
-			if err != nil {
-				return err
-			}
-
-			if len(extra) > 0 {
-				term.Errorf("unknown command \"%v\" for \"%v\"\n", extra[0], getFullName(target))
-				return nil
-			}
-
-			return help(target)
+			help(target, extra)
 		},
 	}
 
 	return cmd
 }
 
-func help(cmd *cobra.Command) error {
+func help(cmd *cobra.Command, extra []string) {
+	if len(extra) > 0 {
+		term.Errorf("unknown command \"%v\" for \"%v\"\n", extra[0], getFullName(cmd))
+		return
+	}
+
 	if cmd.Long != "" {
 		term.Errorln(cmd.Long)
 	} else {
@@ -58,7 +54,7 @@ func help(cmd *cobra.Command) error {
 
 	cmd.Usage()
 	term.Errorln()
-	return nil
+	return
 }
 
 func getFullName(cmd *cobra.Command) string {
