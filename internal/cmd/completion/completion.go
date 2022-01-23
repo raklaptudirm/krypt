@@ -15,6 +15,7 @@ package completion
 
 import (
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raklaptudirm/krypt/internal/cmd/completion/bash"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,9 @@ func NewCmd() *cobra.Command {
 		`),
 		Hidden: true,
 	}
+
+	// supported shells
+	cmd.AddCommand(bash.NewCmd())
 
 	return cmd
 }
