@@ -11,32 +11,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package completion
+package pwsh
 
 import (
+	"os"
+
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/bash"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/fish"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/pwsh"
 	"github.com/spf13/cobra"
 )
 
 func NewCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "completion",
-		Short: "completion generates completion scripts for shells",
+		Use:   "pwsh",
+		Short: "generate the autocompletion script for powershell",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
-			Generate the autocompletion script for krypt for the specified shell.      
-			See each sub-command's help for details on how to use the generated script.
+			Generate the autocompletion script for powershell.
+
+			To load completions in your current shell session:
+			PS C:\> krypt completion powershell | Out-String | Invoke-Expression
+			
+			To load completions for every new session, add the output of the above command
+			to your powershell profile.
 		`),
-		Hidden: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return pwsh(cmd.Root())
+		},
 	}
 
-	// supported shells
-	cmd.AddCommand(bash.NewCmd())
-	cmd.AddCommand(fish.NewCmd())
-	cmd.AddCommand(pwsh.NewCmd())
-
 	return cmd
+}
+
+func pwsh(cmd *cobra.Command) error {
+	return cmd.GenPowerShellCompletion(os.Stdout)
 }
