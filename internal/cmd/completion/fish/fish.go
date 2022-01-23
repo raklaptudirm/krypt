@@ -11,30 +11,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package completion
+package fish
 
 import (
+	"os"
+
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/bash"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/fish"
 	"github.com/spf13/cobra"
 )
 
 func NewCmd() *cobra.Command {
+	var noDesc *bool
 	var cmd = &cobra.Command{
-		Use:   "completion",
-		Short: "completion generates completion scripts for shells",
+		Use:   "fish",
+		Short: "generate the autocompletion script for fish",
 		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
-			Generate the autocompletion script for krypt for the specified shell.      
-			See each sub-command's help for details on how to use the generated script.
+			Generate the autocompletion script for the fish shell.
+
+			To load completions in your current shell session:
+			$ krypt completion fish | source
+			
+			To load completions for every new session, execute once:
+			$ krypt completion fish > ~/.config/fish/completions/krypt.fish  
+			
+			You will need to start a new shell for this setup to take effect.
 		`),
-		Hidden: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return fish(cmd.Root(), *noDesc)
+		},
 	}
 
-	// supported shells
-	cmd.AddCommand(bash.NewCmd())
-	cmd.AddCommand(fish.NewCmd())
+	noDesc = cmd.Flags().BoolP("no-descriptions", "n", false, "disable completion descriptions")
 
 	return cmd
+}
+
+func fish(cmd *cobra.Command, noDesc bool) error {
+	return cmd.GenFishCompletion(os.Stdout, !noDesc)
 }
