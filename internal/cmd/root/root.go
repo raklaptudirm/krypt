@@ -15,6 +15,7 @@ package root
 
 import (
 	"github.com/raklaptudirm/krypt/internal/cmd/add"
+	"github.com/raklaptudirm/krypt/internal/cmd/completion"
 	"github.com/raklaptudirm/krypt/internal/cmd/edit"
 	"github.com/raklaptudirm/krypt/internal/cmd/help"
 	"github.com/raklaptudirm/krypt/internal/cmd/list"
@@ -28,7 +29,7 @@ import (
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:  "krypt [command]",
+		Use:  "krypt",
 		Args: cobra.NoArgs,
 
 		SilenceErrors: true,
@@ -56,6 +57,7 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 	cmd.AddCommand(login.NewCmd(c))
 	cmd.AddCommand(logout.NewCmd(c))
 	cmd.AddCommand(version.NewCmd(c))
+	cmd.AddCommand(completion.NewCmd())
 
 	return cmd
 }
