@@ -76,7 +76,7 @@ confirm: // confirmation loop
 	// passwords are equal
 
 	salt := crypto.RandBytes(8)
-	hash := crypto.Checksum([]byte(pw1))
+	hash := crypto.PassChecksum([]byte(pw1))
 
 	err = man.SetSalt(salt)
 	if err != nil {

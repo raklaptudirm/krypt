@@ -14,8 +14,6 @@
 package auth
 
 import (
-	"reflect"
-
 	"github.com/raklaptudirm/krypt/pkg/crypto"
 )
 
@@ -29,8 +27,7 @@ type Creds struct {
 // Validate checks if the provided byte array matches the master password
 // checksum.
 func (a *Creds) Validate(b []byte) bool {
-	hash := crypto.Checksum(b)
-	return reflect.DeepEqual(hash, a.Hash)
+	return crypto.CompareChecksum(a.Hash, b)
 }
 
 // Registered checks if the user is registered from the credentials.
