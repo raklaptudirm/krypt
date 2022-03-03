@@ -31,7 +31,7 @@ func (a *auth) Key() ([]byte, error) {
 // SetKey puts the provided key into the keyfile.
 func (a *auth) SetKey(data []byte) error {
 	path := filepath.Join(a.Dir, "key")
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600)
 }
 
 // Checksum gets the current checksum from the file.
@@ -43,7 +43,7 @@ func (a *auth) Checksum() ([]byte, error) {
 // SetChecksum puts the provided checksum into the file.
 func (a *auth) SetChecksum(data []byte) error {
 	path := filepath.Join(a.Dir, "checksum")
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600)
 }
 
 // Salt gets the current salt from the file.
@@ -55,5 +55,5 @@ func (a *auth) Salt() ([]byte, error) {
 // SetSalt puts the provided salt into the file.
 func (a *auth) SetSalt(data []byte) error {
 	path := filepath.Join(a.Dir, "salt")
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600)
 }
