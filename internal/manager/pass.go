@@ -62,7 +62,7 @@ func (p *pass) Write(data []byte) error {
 	path := hex.EncodeToString(crypto.Checksum(data))
 	path = filepath.Join(p.Dir, path)
 
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600)
 }
 
 // Delete deletes the password data with the given checksum.

@@ -21,8 +21,22 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/pbkdf2"
 )
+
+// Checksum wraps the bcrypt.GenerateFromPassword method and returns the
+// data's checksum.
+func PassChecksum(data []byte) []byte {
+	cost := 12
+	sum, _ := bcrypt.GenerateFromPassword(data, cost)
+	return sum
+}
+
+func CompareChecksum(hash, pass []byte) bool {
+	err := bcrypt.CompareHashAndPassword(hash, pass)
+	return err == nil
+}
 
 // Checksum wraps the sha256.Sum256 method to return a []byte instead of
 // a [32]byte array.
