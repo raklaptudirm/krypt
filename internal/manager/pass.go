@@ -58,17 +58,31 @@ func (p *pass) Passwords() ([][]byte, error) {
 }
 
 // Write writes the password data into the manager.
-func (p *pass) Write(data []byte) error {
-	path := hex.EncodeToString(crypto.Checksum(data))
-	path = filepath.Join(p.Dir, path)
+func (p *pass) Write(data ...[]byte) error {
+	for _, pass := range data {
+		path := hex.EncodeToString(crypto.Checksum(pass))
+		path = filepath.Join(p.Dir, path)
 
-	return os.WriteFile(path, data, 0600)
+		err := os.WriteFile(path, pass, 0600)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Delete deletes the password data with the given checksum.
-func (p *pass) Delete(hash []byte) error {
-	path := hex.EncodeToString(hash)
-	path = filepath.Join(p.Dir, path)
+func (p *pass) Delete(hashes ...[]byte) error {
+	for _, hash := range hashes {
+		path := hex.EncodeToString(hash)
+		path = filepath.Join(p.Dir, path)
 
-	return os.Remove(path)
+		err := os.Remove(path)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

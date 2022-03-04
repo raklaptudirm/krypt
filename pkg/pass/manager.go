@@ -20,7 +20,7 @@ type Manager interface {
 	// Passwords fetches all the password data from the manager.
 	Passwords() ([][]byte, error)
 	// Write writes password data to the manager.
-	Write([]byte) error
+	Write(...[]byte) error
 	// Delete deletes data with the given checksum from the manager.
-	Delete([]byte) error
+	Delete(...[]byte) error
 }
