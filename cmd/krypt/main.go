@@ -48,6 +48,8 @@ func m(args []string) exitCode {
 			term.Errorln(err)
 			return exitError
 		}
+
+		context = cmdutil.NewContext()
 	}
 
 	rootCmd := root.NewCmd(context)
