@@ -21,6 +21,7 @@ import (
 	"github.com/raklaptudirm/krypt/internal/cmd/list"
 	"github.com/raklaptudirm/krypt/internal/cmd/login"
 	"github.com/raklaptudirm/krypt/internal/cmd/logout"
+	"github.com/raklaptudirm/krypt/internal/cmd/master"
 	"github.com/raklaptudirm/krypt/internal/cmd/rm"
 	"github.com/raklaptudirm/krypt/internal/cmd/version"
 	"github.com/raklaptudirm/krypt/internal/cmdutil"
@@ -56,6 +57,7 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 	cmd.AddCommand(list.NewCmd(c))
 	cmd.AddCommand(login.NewCmd(c))
 	cmd.AddCommand(logout.NewCmd(c))
+	cmd.AddCommand(master.NewCmd(c))
 	cmd.AddCommand(version.NewCmd(c))
 	cmd.AddCommand(completion.NewCmd())
 

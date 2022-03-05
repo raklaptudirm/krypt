@@ -45,6 +45,11 @@ func (p *pass) Passwords() ([][]byte, error) {
 			continue
 		}
 
+		switch element.Name() {
+		case "key", "checksum", "salt":
+			continue
+		}
+
 		path := filepath.Join(p.Dir, element.Name())
 		data, err := os.ReadFile(path)
 		if err != nil {
