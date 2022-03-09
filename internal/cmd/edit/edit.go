@@ -37,7 +37,7 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 			names that match the provided regular expression.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			p, err := pass.Get(c.PassManager, args[0], c.Creds.Key)
+			p, err := pass.Filter(c.PassManager, c.Creds.Key, args[0])
 			if err != nil {
 				return err
 			}

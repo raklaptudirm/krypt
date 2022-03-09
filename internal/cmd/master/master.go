@@ -42,7 +42,7 @@ func NewCmd(c *cmdutil.Context) *cobra.Command {
 }
 
 func master(c *auth.Creds, authMan auth.Manager, passMan pass.Manager) error {
-	passwords, err := pass.Get(passMan, "", c.Key)
+	passwords, err := pass.Get(passMan, c.Key)
 	if err != nil {
 		return err
 	}

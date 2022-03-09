@@ -51,7 +51,7 @@ func list(passMan pass.Manager, creds *auth.Creds, ident string) error {
 		return cmdutil.ErrNoLogin
 	}
 
-	passwords, err := pass.Get(passMan, ident, creds.Key)
+	passwords, err := pass.Filter(passMan, creds.Key, ident)
 	if err != nil {
 		return err
 	}
