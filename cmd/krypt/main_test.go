@@ -5,8 +5,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/spf13/cobra"
+	"laptudirm.com/x/krypt/internal/cmdutil"
 )
 
 func TestHandleError(t *testing.T) {

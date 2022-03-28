@@ -16,9 +16,9 @@ package cmdutil
 import (
 	"os"
 
-	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/internal/build"
-	"github.com/raklaptudirm/krypt/pkg/pass"
+	"laptudirm.com/x/krypt/internal/auth"
+	"laptudirm.com/x/krypt/internal/build"
+	"laptudirm.com/x/krypt/pkg/pass"
 )
 
 // Context represents the context in which the krypt commands will

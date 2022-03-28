@@ -15,8 +15,8 @@ package help
 
 import (
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
+	"laptudirm.com/x/krypt/pkg/term"
 )
 
 func NewCmd() *cobra.Command {

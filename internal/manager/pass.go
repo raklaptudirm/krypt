@@ -18,7 +18,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/raklaptudirm/krypt/pkg/crypto"
+	"laptudirm.com/x/krypt/pkg/crypto"
 )
 
 type pass struct {

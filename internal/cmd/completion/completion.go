@@ -15,11 +15,11 @@ package completion
 
 import (
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/bash"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/fish"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/pwsh"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion/zsh"
 	"github.com/spf13/cobra"
+	"laptudirm.com/x/krypt/internal/cmd/completion/bash"
+	"laptudirm.com/x/krypt/internal/cmd/completion/fish"
+	"laptudirm.com/x/krypt/internal/cmd/completion/pwsh"
+	"laptudirm.com/x/krypt/internal/cmd/completion/zsh"
 )
 
 func NewCmd() *cobra.Command {

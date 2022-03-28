@@ -15,12 +15,12 @@ package master
 
 import (
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/internal/cmdutil"
-	"github.com/raklaptudirm/krypt/pkg/crypto"
-	"github.com/raklaptudirm/krypt/pkg/pass"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
+	"laptudirm.com/x/krypt/internal/auth"
+	"laptudirm.com/x/krypt/internal/cmdutil"
+	"laptudirm.com/x/krypt/pkg/crypto"
+	"laptudirm.com/x/krypt/pkg/pass"
+	"laptudirm.com/x/krypt/pkg/term"
 )
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {

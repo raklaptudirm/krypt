@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/internal/manager"
-	"github.com/raklaptudirm/krypt/pkg/pass"
+	"laptudirm.com/x/krypt/internal/auth"
+	"laptudirm.com/x/krypt/internal/manager"
+	"laptudirm.com/x/krypt/pkg/pass"
 )
 
 // values of the managers can be manually changed

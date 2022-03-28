@@ -18,10 +18,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/raklaptudirm/krypt/internal/cmd/root"
-	"github.com/raklaptudirm/krypt/internal/cmdutil"
-	"github.com/raklaptudirm/krypt/pkg/term"
 	"github.com/spf13/cobra"
+	"laptudirm.com/x/krypt/internal/cmd/root"
+	"laptudirm.com/x/krypt/internal/cmdutil"
+	"laptudirm.com/x/krypt/pkg/term"
 )
 
 type exitCode int

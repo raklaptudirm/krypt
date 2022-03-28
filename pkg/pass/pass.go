@@ -19,7 +19,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/raklaptudirm/krypt/pkg/crypto"
+	"laptudirm.com/x/krypt/pkg/crypto"
 )
 
 // ErrDecode represents some data which was not able to be decoded

@@ -14,18 +14,18 @@
 package root
 
 import (
-	"github.com/raklaptudirm/krypt/internal/cmd/add"
-	"github.com/raklaptudirm/krypt/internal/cmd/completion"
-	"github.com/raklaptudirm/krypt/internal/cmd/edit"
-	"github.com/raklaptudirm/krypt/internal/cmd/help"
-	"github.com/raklaptudirm/krypt/internal/cmd/list"
-	"github.com/raklaptudirm/krypt/internal/cmd/login"
-	"github.com/raklaptudirm/krypt/internal/cmd/logout"
-	"github.com/raklaptudirm/krypt/internal/cmd/master"
-	"github.com/raklaptudirm/krypt/internal/cmd/rm"
-	"github.com/raklaptudirm/krypt/internal/cmd/version"
-	"github.com/raklaptudirm/krypt/internal/cmdutil"
 	"github.com/spf13/cobra"
+	"laptudirm.com/x/krypt/internal/cmd/add"
+	"laptudirm.com/x/krypt/internal/cmd/completion"
+	"laptudirm.com/x/krypt/internal/cmd/edit"
+	"laptudirm.com/x/krypt/internal/cmd/help"
+	"laptudirm.com/x/krypt/internal/cmd/list"
+	"laptudirm.com/x/krypt/internal/cmd/login"
+	"laptudirm.com/x/krypt/internal/cmd/logout"
+	"laptudirm.com/x/krypt/internal/cmd/master"
+	"laptudirm.com/x/krypt/internal/cmd/rm"
+	"laptudirm.com/x/krypt/internal/cmd/version"
+	"laptudirm.com/x/krypt/internal/cmdutil"
 )
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
