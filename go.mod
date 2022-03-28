@@ -1,4 +1,4 @@
-module github.com/raklaptudirm/krypt
+module laptudirm.com/x/krypt
 
 go 1.17
 

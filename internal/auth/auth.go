@@ -14,7 +14,7 @@
 package auth
 
 import (
-	"github.com/raklaptudirm/krypt/pkg/crypto"
+	"laptudirm.com/x/krypt/pkg/crypto"
 )
 
 // Creds stored authentication information that can be used to validate

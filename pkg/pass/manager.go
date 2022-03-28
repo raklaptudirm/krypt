@@ -16,11 +16,11 @@ package pass
 // Manager represents a password manager.
 type Manager interface {
 	// Password fetches the password data with the given checksum.
-	Password([]byte) ([]byte, error)
+	Password([]byte) ([]byte, error) // return matching data and error if any
 	// Passwords fetches all the password data from the manager.
-	Passwords() ([][]byte, error)
+	Passwords() ([][]byte, error) // return all password data and error if any
 	// Write writes password data to the manager.
-	Write([]byte) error
+	Write(...[]byte) error // return write error if any
 	// Delete deletes data with the given checksum from the manager.
-	Delete([]byte) error
+	Delete(...[]byte) error // return delete error if any
 }

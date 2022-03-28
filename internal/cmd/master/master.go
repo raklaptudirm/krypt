@@ -11,52 +11,69 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package rm
+package master
 
 import (
-	"fmt"
-
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 	"laptudirm.com/x/krypt/internal/auth"
 	"laptudirm.com/x/krypt/internal/cmdutil"
+	"laptudirm.com/x/krypt/pkg/crypto"
 	"laptudirm.com/x/krypt/pkg/pass"
+	"laptudirm.com/x/krypt/pkg/term"
 )
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "rm regexp",
-		Short: "remove a password which matches the provided regexp",
-		Args:  cobra.ExactArgs(1),
+		Use:   "master",
+		Short: "master changes krypt's master password",
+		Args:  cobra.NoArgs,
 		Long: heredoc.Doc(`
-			Remove deletes the password matching the regular expression from krypt.
-
-			The password to delete is the first password from the list of password
-			names that match the provided regular expression.
+			Reset your master/primary password to the provided password. After the
+			reset, the password will be stored and the existing passwords will be re-
+			encrypted automatically.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ps, err := pass.Filter(c.PassManager, c.Creds.Key, args[0])
-			if err != nil {
-				return err
-			}
-
-			return rm(c.PassManager, c.Creds, ps[0].Checksum)
+			return master(c.Creds, c.AuthManager, c.PassManager)
 		},
 	}
 
 	return cmd
 }
 
-func rm(passMan pass.Manager, creds *auth.Creds, checksum []byte) error {
-	if !creds.LoggedIn() {
-		return cmdutil.ErrNoLogin
-	}
-
-	err := passMan.Delete(checksum)
+func master(c *auth.Creds, authMan auth.Manager, passMan pass.Manager) error {
+	passwords, err := pass.Get(passMan, c.Key)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Deleted password.")
+	dataset, err := passMan.Passwords()
+	if err != nil {
+		return err
+	}
+
+	var hashes [][]byte
+	for _, data := range dataset {
+		hashes = append(hashes, crypto.Checksum(data))
+	}
+
+	err = passMan.Delete(hashes...)
+	if err != nil {
+		return err
+	}
+
+	term.Register(authMan)
+
+	nKey, err := authMan.Key()
+	if err != nil {
+		return err
+	}
+
+	for _, password := range passwords {
+		err = password.Write(passMan, nKey)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

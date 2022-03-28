@@ -20,9 +20,9 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 
-	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/internal/cmdutil"
-	"github.com/raklaptudirm/krypt/pkg/crypto"
+	"laptudirm.com/x/krypt/internal/auth"
+	"laptudirm.com/x/krypt/internal/cmdutil"
+	"laptudirm.com/x/krypt/pkg/crypto"
 )
 
 func NewCmd(c *cmdutil.Context) *cobra.Command {

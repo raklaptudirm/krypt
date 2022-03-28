@@ -19,7 +19,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/raklaptudirm/krypt/pkg/crypto"
+	"laptudirm.com/x/krypt/pkg/crypto"
 )
 
 // ErrDecode represents some data which was not able to be decoded
@@ -88,30 +88,52 @@ func (p *Password) Write(man Manager, key []byte) error {
 	return man.Write(data)
 }
 
-// Get fetches a list of password from the provided password manager whose names match
-// the provided regular expression.
-func Get(man Manager, ident string, key []byte) (pass []Password, err error) {
-	regex, err := regexp.Compile(ident)
+func Get(man Manager, key []byte) ([]Password, error) {
+	dataset, err := man.Passwords()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	pbs, err := man.Passwords()
-	if err != nil {
-		return
-	}
+	var passwords []Password
 
-	for _, pb := range pbs {
-		p, err := decode(pb, key)
-
-		// check if regex matches password name
-		if err == nil && regex.Match([]byte(p.Name)) {
-			pass = append(pass, *p)
+	for _, data := range dataset {
+		password, err := decode(data, key)
+		if err == nil {
+			passwords = append(passwords, *password)
 		}
 	}
 
-	if len(pass) == 0 {
-		err = fmt.Errorf("no password matched %v", ident)
+	if len(passwords) == 0 {
+		return nil, fmt.Errorf("no passwords in database")
 	}
-	return
+
+	return passwords, nil
+}
+
+// Get fetches a list of password from the provided password manager whose names match
+// the provided regular expression.
+func Filter(man Manager, key []byte, ident string) ([]Password, error) {
+	regex, err := regexp.Compile(ident)
+	if err != nil {
+		return nil, err
+	}
+
+	var filtered []Password
+
+	passwords, err := Get(man, key)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, password := range passwords {
+		if regex.Match([]byte(password.Name)) {
+			filtered = append(passwords, password)
+		}
+	}
+
+	if len(filtered) == 0 {
+		return nil, fmt.Errorf("no passwords matched %#v", ident)
+	}
+
+	return filtered, nil
 }

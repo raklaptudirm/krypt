@@ -19,8 +19,8 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raklaptudirm/krypt/internal/auth"
-	"github.com/raklaptudirm/krypt/pkg/crypto"
+	"laptudirm.com/x/krypt/internal/auth"
+	"laptudirm.com/x/krypt/pkg/crypto"
 )
 
 // Error acts as fmt.Print in stderr.
