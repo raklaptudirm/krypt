@@ -1,6 +1,10 @@
 # The Krypt Password Manager
 
-![logo](https://user-images.githubusercontent.com/68542775/158347672-652d6682-2172-4332-ae75-399afdb670e4.png)
+<div align="center">
+
+  ![logo](https://user-images.githubusercontent.com/68542775/167543732-25df8159-3603-4f9b-8a62-e7c88836567b.png)
+
+</div>
 
 ### Installation
 
